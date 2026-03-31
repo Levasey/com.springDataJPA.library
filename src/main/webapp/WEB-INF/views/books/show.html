@@ -5,7 +5,7 @@
     <title>Show book</title>
 </head>
 <body>
-<p th:text="${book.getTitle() + ', ' + book.getYear_published()}">VALUE</p>
+<p th:text="${book.getTitle() + ', ' + book.getYearPublished()}">VALUE</p>
 <p th:text="${'Author: ' + book.getAuthor()}">VALUE</p>
 
 <div th:if="${owner}">

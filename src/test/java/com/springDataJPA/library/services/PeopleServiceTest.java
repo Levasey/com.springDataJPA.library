@@ -1,5 +1,6 @@
 package com.springDataJPA.library.services;
 
+import com.springDataJPA.library.exception.ResourceNotFoundException;
 import com.springDataJPA.library.models.Book;
 import com.springDataJPA.library.models.Person;
 import com.springDataJPA.library.repositories.PeopleRepository;
@@ -35,12 +36,16 @@ class PeopleServiceTest {
     }
 
     @Test
-    void findById_returnsPersonOrNull() {
+    void findById_returnsPersonWhenPresent() {
         Person p = new Person();
         when(peopleRepository.findById(1)).thenReturn(Optional.of(p));
         assertSame(p, peopleService.findById(1));
+    }
+
+    @Test
+    void findById_throwsWhenMissing() {
         when(peopleRepository.findById(2)).thenReturn(Optional.empty());
-        assertNull(peopleService.findById(2));
+        assertThrows(ResourceNotFoundException.class, () -> peopleService.findById(2));
     }
 
     @Test
@@ -52,6 +57,7 @@ class PeopleServiceTest {
 
     @Test
     void update_setsIdAndSaves() {
+        when(peopleRepository.existsById(3)).thenReturn(true);
         Person p = new Person();
         peopleService.update(3, p);
         assertEquals(3, p.getPersonId());
@@ -59,9 +65,24 @@ class PeopleServiceTest {
     }
 
     @Test
+    void update_throwsWhenPersonMissing() {
+        when(peopleRepository.existsById(3)).thenReturn(false);
+        assertThrows(ResourceNotFoundException.class, () -> peopleService.update(3, new Person()));
+        verify(peopleRepository, never()).save(any());
+    }
+
+    @Test
     void delete_delegatesToRepository() {
+        when(peopleRepository.existsById(9)).thenReturn(true);
         peopleService.delete(9);
         verify(peopleRepository).deleteById(9);
+    }
+
+    @Test
+    void delete_throwsWhenMissing() {
+        when(peopleRepository.existsById(9)).thenReturn(false);
+        assertThrows(ResourceNotFoundException.class, () -> peopleService.delete(9));
+        verify(peopleRepository, never()).deleteById(anyInt());
     }
 
     @Test
@@ -89,5 +110,22 @@ class PeopleServiceTest {
         assertEquals(2, books.size());
         assertTrue(overdue.isExpired());
         assertFalse(fresh.isExpired());
+    }
+
+    @Test
+    void getBooksByPersonId_doesNotMarkExpiredWhenTakenAtInFuture() {
+        Person person = new Person();
+        person.setPersonId(1);
+        Book book = new Book("T", "A", 2000);
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_MONTH, 1);
+        book.setTakenAt(cal.getTime());
+        person.setBooks(new ArrayList<>(List.of(book)));
+
+        when(peopleRepository.findById(1)).thenReturn(Optional.of(person));
+
+        peopleService.getBooksByPersonId(1);
+
+        assertFalse(book.isExpired());
     }
 }

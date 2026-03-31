@@ -31,8 +31,11 @@ public class BookController {
 
         if (page == null || booksPerPage == null)
             model.addAttribute("books", bookService.findAll(sortByYear)); // выдача всех книг
-        else
-            model.addAttribute("books", bookService.findWithPagination(page, booksPerPage, sortByYear));
+        else {
+            /* Параметр page в запросе — с единицы (первая страница = 1); Spring Data — с нуля. */
+            int pageIndex = page < 1 ? 0 : page - 1;
+            model.addAttribute("books", bookService.findWithPagination(pageIndex, booksPerPage, sortByYear));
+        }
 
         return "books/index";
     }

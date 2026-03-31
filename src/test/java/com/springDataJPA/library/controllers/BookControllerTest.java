@@ -1,5 +1,6 @@
 package com.springDataJPA.library.controllers;
 
+import com.springDataJPA.library.exception.GlobalExceptionHandler;
 import com.springDataJPA.library.models.Book;
 import com.springDataJPA.library.models.Person;
 import com.springDataJPA.library.services.BookService;
@@ -40,6 +41,7 @@ class BookControllerTest {
         validator.setMessageInterpolator(new ParameterMessageInterpolator());
         validator.afterPropertiesSet();
         mockMvc = MockMvcBuilders.standaloneSetup(new BookController(bookService, peopleService))
+                .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
                 .build();
     }
@@ -54,7 +56,15 @@ class BookControllerTest {
     }
 
     @Test
-    void index_withPagination() throws Exception {
+    void index_withPagination_usesZeroBasedPageFromOneBasedParam() throws Exception {
+        when(bookService.findWithPagination(0, 10, true)).thenReturn(List.of());
+        mockMvc.perform(get("/books").param("page", "1").param("books_per_page", "10").param("sort_by_year", "true"))
+                .andExpect(status().isOk());
+        verify(bookService).findWithPagination(0, 10, true);
+    }
+
+    @Test
+    void index_withPagination_pageZeroMapsToFirstPage() throws Exception {
         when(bookService.findWithPagination(0, 10, true)).thenReturn(List.of());
         mockMvc.perform(get("/books").param("page", "0").param("books_per_page", "10").param("sort_by_year", "true"))
                 .andExpect(status().isOk());
@@ -83,7 +93,7 @@ class BookControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "Title")
                         .param("author", "Author")
-                        .param("year_published", "2000"))
+                        .param("yearPublished", "2000"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/books"));
         verify(bookService).saveBook(any(Book.class));
@@ -95,7 +105,7 @@ class BookControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "x")
                         .param("author", "A")
-                        .param("year_published", "1499"))
+                        .param("yearPublished", "1499"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("books/new"));
     }
@@ -128,7 +138,7 @@ class BookControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "T2")
                         .param("author", "A2")
-                        .param("year_published", "2001"))
+                        .param("yearPublished", "2001"))
                 .andExpect(redirectedUrl("/books"));
         verify(bookService).update(eq(3), any(Book.class));
     }

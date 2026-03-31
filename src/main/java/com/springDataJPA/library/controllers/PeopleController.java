@@ -28,8 +28,8 @@ public class PeopleController {
         return "people/index";
     }
 
-    @GetMapping("/{id}")
-    public String show(@PathVariable("id") int id, Model model) {
+    @GetMapping("/{personId}")
+    public String show(@PathVariable("personId") int id, Model model) {
         model.addAttribute("person", peopleService.findById(id));
         model.addAttribute("books", peopleService.getBooksByPersonId(id));
         return "people/show";

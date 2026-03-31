@@ -8,7 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
@@ -71,14 +72,20 @@ public class SpringConfig implements WebMvcConfigurer {
 
     @Bean
     public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-
-        dataSource.setDriverClassName(env.getRequiredProperty("hibernate.driver_class"));
-        dataSource.setUrl(env.getRequiredProperty("hibernate.connection.url"));
-        dataSource.setUsername(env.getRequiredProperty("hibernate.connection.username"));
-        dataSource.setPassword(env.getRequiredProperty("hibernate.connection.password"));
-
-        return dataSource;
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName(env.getRequiredProperty("hibernate.driver_class"));
+        config.setJdbcUrl(env.getRequiredProperty("hibernate.connection.url"));
+        config.setUsername(env.getRequiredProperty("hibernate.connection.username"));
+        String password = env.getProperty("hibernate.connection.password");
+        if (password == null || password.isEmpty()) {
+            password = System.getenv("LIBRARY_DB_PASSWORD");
+        }
+        if (password == null || password.isEmpty()) {
+            throw new IllegalStateException(
+                    "Database password not configured: set hibernate.connection.password or LIBRARY_DB_PASSWORD");
+        }
+        config.setPassword(password);
+        return new HikariDataSource(config);
     }
 
     private Properties hibernateProperties() {

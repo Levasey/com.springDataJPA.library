@@ -28,7 +28,7 @@ public class Book {
 
     @Min(value = 1500, message = "Year should be at least 1500")
     @Column(name = "year_published")
-    private int year_published;
+    private int yearPublished;
 
     @Column(name = "taken_at")
     @Temporal(TemporalType.TIMESTAMP)
@@ -44,10 +44,10 @@ public class Book {
     public Book() {
     }
 
-    public Book(String title, String author, int year_published) {
+    public Book(String title, String author, int yearPublished) {
         this.title = title;
         this.author = author;
-        this.year_published = year_published;
+        this.yearPublished = yearPublished;
     }
 
     public boolean isExpired() {
@@ -98,12 +98,11 @@ public class Book {
         this.author = author;
     }
 
-    public int getYear_published() {
-        return year_published;
+    public int getYearPublished() {
+        return yearPublished;
     }
 
-    public void setYear_published(int year_published) {
-        this.year_published = year_published;
+    public void setYearPublished(int yearPublished) {
+        this.yearPublished = yearPublished;
     }
 }
-

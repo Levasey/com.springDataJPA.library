@@ -1,5 +1,6 @@
 package com.springDataJPA.library.controllers;
 
+import com.springDataJPA.library.exception.GlobalExceptionHandler;
 import com.springDataJPA.library.models.Person;
 import com.springDataJPA.library.services.PeopleService;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,7 @@ class PeopleControllerTest {
         validator.setMessageInterpolator(new ParameterMessageInterpolator());
         validator.afterPropertiesSet();
         mockMvc = MockMvcBuilders.standaloneSetup(new PeopleController(peopleService))
+                .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
                 .build();
     }

@@ -1,6 +1,7 @@
 package com.springDataJPA.library.services;
 
 
+import com.springDataJPA.library.exception.ResourceNotFoundException;
 import com.springDataJPA.library.models.Book;
 import com.springDataJPA.library.models.Person;
 import com.springDataJPA.library.repositories.BookRepository;
@@ -13,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly=true)
@@ -31,14 +31,14 @@ public class BookService {
 
     public List<Book> findAll(boolean sortByYear) {
         if (sortByYear)
-            return bookRepository.findAll(Sort.by("year_published"));
+            return bookRepository.findAll(Sort.by("yearPublished"));
         else
             return bookRepository.findAll();
     }
 
     public Book findOne(int id) {
-        Optional<Book> book = bookRepository.findById(id);
-        return book.orElse(null);
+        return bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found: id=" + id));
     }
 
     @Transactional
@@ -48,49 +48,56 @@ public class BookService {
 
     @Transactional
     public void update(int id, Book updatedBook) {
-        bookRepository.findById(id).ifPresent(bookToBeUpdated -> {
-            updatedBook.setBookId(id);
-            updatedBook.setOwner(bookToBeUpdated.getOwner());
-            bookRepository.save(updatedBook);
-        });
+        Book bookToBeUpdated = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found: id=" + id));
+        updatedBook.setBookId(id);
+        updatedBook.setOwner(bookToBeUpdated.getOwner());
+        bookRepository.save(updatedBook);
     }
 
     @Transactional
     public void delete(int id) {
+        if (!bookRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Book not found: id=" + id);
+        }
         bookRepository.deleteById(id);
     }
 
     public Person getBookOwner(int id) {
-        return bookRepository.findById(id).map(Book::getOwner).orElse(null);
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found: id=" + id));
+        return book.getOwner();
     }
 
     @Transactional
     public void release(int id) {
-        bookRepository.findById(id).ifPresent(book -> {
-            book.setOwner(null);
-            book.setTakenAt(null);
-        });
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found: id=" + id));
+        book.setOwner(null);
+        book.setTakenAt(null);
     }
 
     @Transactional
     public void assign(int bookId, Person selectedPerson) {
         if (selectedPerson == null) {
-            return;
+            throw new ResourceNotFoundException("Person is required to assign a book");
         }
-        peopleRepository.findById(selectedPerson.getPersonId()).ifPresent(person ->
-                bookRepository.findById(bookId).ifPresent(book -> {
-                    book.setOwner(person);
-                    book.setTakenAt(new Date());
-                }));
+        Person person = peopleRepository.findById(selectedPerson.getPersonId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Person not found: id=" + selectedPerson.getPersonId()));
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book not found: id=" + bookId));
+        book.setOwner(person);
+        book.setTakenAt(new Date());
     }
 
     public List<Book> searchByTitle(String query) {
-        return bookRepository.findByTitleStartingWith(query);
+        return bookRepository.findByTitleStartingWithIgnoreCase(query);
     }
 
     public List<Book> findWithPagination(Integer page, Integer booksPerPage, boolean sortByYear) {
         if (sortByYear)
-            return bookRepository.findAll(PageRequest.of(page, booksPerPage, Sort.by("year_published"))).getContent();
+            return bookRepository.findAll(PageRequest.of(page, booksPerPage, Sort.by("yearPublished"))).getContent();
         else
             return bookRepository.findAll(PageRequest.of(page, booksPerPage)).getContent();
     }

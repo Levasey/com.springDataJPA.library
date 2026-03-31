@@ -1,5 +1,6 @@
 package com.springDataJPA.library.services;
 
+import com.springDataJPA.library.exception.ResourceNotFoundException;
 import com.springDataJPA.library.models.Book;
 import com.springDataJPA.library.models.Person;
 import com.springDataJPA.library.repositories.BookRepository;
@@ -38,7 +39,7 @@ class BookServiceTest {
     @Test
     void findAll_sortsByYearWhenRequested() {
         bookService.findAll(true);
-        verify(bookRepository).findAll(Sort.by("year_published"));
+        verify(bookRepository).findAll(Sort.by("yearPublished"));
     }
 
     @Test
@@ -56,9 +57,9 @@ class BookServiceTest {
     }
 
     @Test
-    void findOne_returnsNullWhenMissing() {
+    void findOne_throwsWhenMissing() {
         when(bookRepository.findById(99)).thenReturn(Optional.empty());
-        assertNull(bookService.findOne(99));
+        assertThrows(ResourceNotFoundException.class, () -> bookService.findOne(99));
     }
 
     @Test
@@ -88,16 +89,25 @@ class BookServiceTest {
     }
 
     @Test
-    void update_doesNothingWhenBookMissing() {
+    void update_throwsWhenBookMissing() {
         when(bookRepository.findById(1)).thenReturn(Optional.empty());
-        bookService.update(1, new Book("X", "Y", 2000));
+        assertThrows(ResourceNotFoundException.class,
+                () -> bookService.update(1, new Book("X", "Y", 2000)));
         verify(bookRepository, never()).save(any());
     }
 
     @Test
     void delete_delegatesToRepository() {
+        when(bookRepository.existsById(7)).thenReturn(true);
         bookService.delete(7);
         verify(bookRepository).deleteById(7);
+    }
+
+    @Test
+    void delete_throwsWhenMissing() {
+        when(bookRepository.existsById(7)).thenReturn(false);
+        assertThrows(ResourceNotFoundException.class, () -> bookService.delete(7));
+        verify(bookRepository, never()).deleteById(anyInt());
     }
 
     @Test
@@ -108,8 +118,15 @@ class BookServiceTest {
         when(bookRepository.findById(2)).thenReturn(Optional.of(book));
         assertSame(owner, bookService.getBookOwner(2));
 
-        when(bookRepository.findById(3)).thenReturn(Optional.empty());
+        Book noOwner = new Book("T", "A", 2001);
+        when(bookRepository.findById(3)).thenReturn(Optional.of(noOwner));
         assertNull(bookService.getBookOwner(3));
+    }
+
+    @Test
+    void getBookOwner_throwsWhenBookMissing() {
+        when(bookRepository.findById(9)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> bookService.getBookOwner(9));
     }
 
     @Test
@@ -126,9 +143,33 @@ class BookServiceTest {
     }
 
     @Test
-    void assign_doesNothingWhenPersonNull() {
-        bookService.assign(1, null);
+    void release_throwsWhenBookMissing() {
+        when(bookRepository.findById(4)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> bookService.release(4));
+    }
+
+    @Test
+    void assign_throwsWhenPersonNull() {
+        assertThrows(ResourceNotFoundException.class, () -> bookService.assign(1, null));
         verify(peopleRepository, never()).findById(anyInt());
+    }
+
+    @Test
+    void assign_throwsWhenPersonMissing() {
+        Person stub = new Person();
+        stub.setPersonId(10);
+        when(peopleRepository.findById(10)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> bookService.assign(8, stub));
+        verify(bookRepository, never()).findById(anyInt());
+    }
+
+    @Test
+    void assign_throwsWhenBookMissing() {
+        Person person = new Person();
+        person.setPersonId(10);
+        when(peopleRepository.findById(10)).thenReturn(Optional.of(person));
+        when(bookRepository.findById(8)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> bookService.assign(8, person));
     }
 
     @Test
@@ -148,7 +189,7 @@ class BookServiceTest {
     @Test
     void searchByTitle_delegatesToRepository() {
         List<Book> list = List.of(new Book("T", "A", 2000));
-        when(bookRepository.findByTitleStartingWith("ab")).thenReturn(list);
+        when(bookRepository.findByTitleStartingWithIgnoreCase("ab")).thenReturn(list);
         assertEquals(list, bookService.searchByTitle("ab"));
     }
 
@@ -156,7 +197,7 @@ class BookServiceTest {
     void findWithPagination_appliesSortWhenRequested() {
         Book b = new Book("T", "A", 2000);
         Page<Book> page = new PageImpl<>(List.of(b));
-        when(bookRepository.findAll(PageRequest.of(1, 5, Sort.by("year_published")))).thenReturn(page);
+        when(bookRepository.findAll(PageRequest.of(1, 5, Sort.by("yearPublished")))).thenReturn(page);
         assertEquals(List.of(b), bookService.findWithPagination(1, 5, true));
     }
 

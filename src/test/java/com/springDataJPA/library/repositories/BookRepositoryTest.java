@@ -22,12 +22,12 @@ class BookRepositoryTest {
     private BookRepository bookRepository;
 
     @Test
-    void findByTitleStartingWith_matchesPrefix() {
+    void findByTitleStartingWithIgnoreCase_matchesPrefixRegardlessOfCase() {
         bookRepository.save(new Book("Alpha Tale", "A1", 2000));
         bookRepository.save(new Book("Beta Story", "B2", 2001));
         bookRepository.flush();
 
-        List<Book> found = bookRepository.findByTitleStartingWith("Alp");
+        List<Book> found = bookRepository.findByTitleStartingWithIgnoreCase("alp");
 
         assertEquals(1, found.size());
         assertEquals("Alpha Tale", found.get(0).getTitle());

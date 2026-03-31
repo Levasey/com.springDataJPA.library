@@ -19,7 +19,7 @@
     </div>
 
     <div th:each="book : ${books}">
-        <p th:text="${book.getTitle() + ', ' + book.getAuthor() + ', ' + book.getYear_published()}">book</p>
+        <p th:text="${book.getTitle() + ', ' + book.getAuthor() + ', ' + book.getYearPublished()}">book</p>
 
         <div th:if="${book.getOwner() != null}">
             <span>Книга сейчас у: </span> <span th:text="${book.getOwner().getSurname()}">Person Surname</span> <span th:text="${book.getOwner().getName()}">Person Name</span>

@@ -21,7 +21,7 @@
     <b>Книги:</b>
     <br/>
     <table th:each="book : ${books}">
-        <tr th:text="${book.getTitle() + ', ' + book.getAuthor() + ', ' + book.getYear_published()}">book</tr>
+        <tr th:text="${book.getTitle() + ', ' + book.getAuthor() + ', ' + book.getYearPublished()}">book</tr>
     </table>
     <hr/>
 </div>

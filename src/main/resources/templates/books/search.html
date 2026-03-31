@@ -1,36 +1,31 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Search</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('Поиск книг', ~{::main})}">
 <body>
-
-<form th:method="GET" th:action="@{/books/search}">
-    <label for="q">Введите поисковой запрос: </label>
-    <input type="text" id="q" name="q" th:value="${q}"/>
-    <br/>
-    <input type="submit" value="Искать!"/>
-</form>
-
-<div th:if="${books != null}">
-    <div th:if="${books.isEmpty()}">
-        <span>Книг не найдено</span>
-    </div>
-
-    <div th:each="book : ${books}">
-        <p th:text="${book.getTitle() + ', ' + book.getAuthor() + ', ' + book.getYearPublished()}">book</p>
-
-        <div th:if="${book.getOwner() != null}">
-            <span>Книга сейчас у: </span> <span th:text="${book.getOwner().getSurname()}">Person Surname</span> <span th:text="${book.getOwner().getName()}">Person Name</span>
+<th:block th:fragment="main">
+    <h1 class="page-title">Поиск книг</h1>
+    <form class="form-stack panel" style="max-width:100%;margin:0 0 1.5rem" th:method="GET" th:action="@{/books/search}">
+        <div class="field">
+            <label for="q">Запрос</label>
+            <input type="text" id="q" name="q" th:value="${q}" autocomplete="off" placeholder="Название, автор…"/>
         </div>
-
-        <div th:if="${book.getOwner() == null}">
-            <span>Книга свободна</span>
+        <div class="actions" style="margin-top:0">
+            <input class="btn btn-primary" type="submit" value="Искать"/>
         </div>
+    </form>
 
-        <hr/>
+    <div th:if="${books != null}" class="search-results">
+        <p th:if="${books.isEmpty()}" class="muted" style="margin:0">Книг не найдено.</p>
+        <article class="result" th:each="book : ${books}">
+            <p style="margin:0 0 0.35rem">
+                <strong th:text="${book.getTitle()}">название</strong>
+                <span class="muted" th:text="| · ${book.getAuthor()} · ${book.getYearPublished()}|"></span>
+            </p>
+            <p th:if="${book.getOwner() != null}" class="status-busy" style="margin:0;font-size:0.92rem">
+                У читателя: <span th:text="${book.getOwner().getSurname() + ' ' + book.getOwner().getName()}"></span>
+            </p>
+            <p th:if="${book.getOwner() == null}" class="status-free" style="margin:0;font-size:0.92rem">Свободна</p>
+        </article>
     </div>
-</div>
+</th:block>
 </body>
 </html>

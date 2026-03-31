@@ -1,20 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>People</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('Читатели', ~{::main})}">
 <body>
-
-<div th:each="person : ${people}">
-    <a th:href="@{/people/{personId}(personId=${person.getPersonId()})}"
-       th:text="${person.getName() + ', ' + person.getSurname()}">user</a>
-</div>
-
-<br/>
-<hr/>
-
-<a th:href="@{/people/new}">Create new person</a>
-
+<th:block th:fragment="main">
+    <h1 class="page-title">Читатели</h1>
+    <ul class="card-list">
+        <li th:each="person : ${people}">
+            <a th:href="@{/people/{personId}(personId=${person.getPersonId()})}"
+               th:text="${person.getName() + ', ' + person.getSurname()}">читатель</a>
+        </li>
+    </ul>
+    <div class="actions">
+        <a class="btn btn-primary" th:href="@{/people/new}">Добавить читателя</a>
+    </div>
+</th:block>
 </body>
 </html>

@@ -1,39 +1,55 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Show person</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('Читатель', ~{::main})}">
 <body>
-<p th:text="${person.getName() + ', '+ person.getSurname()}">VALUE</p>
-<p th:text="${'Email: ' + person.getEmail()}">VALUE</p>
-<p th:text="${'Address: ' + person.getAddress()}">VALUE</p>
-<p th:text="${'Date of birth: ' + person.getDateOfBirth()}">VALUE</p>
-<p th:text="${person.getPersonId()}">VALUE</p>
+<th:block th:fragment="main">
+    <h1 class="page-title" th:text="${person.getName() + ' ' + person.getSurname()}">Имя</h1>
+    <div class="panel stack">
+        <p><span class="muted">Электронная почта:</span> <span th:text="${person.getEmail()}">email</span></p>
+        <p><span class="muted">Адрес:</span> <span th:text="${person.getAddress()}">адрес</span></p>
+        <p><span class="muted">Дата рождения:</span> <span th:text="${person.getDateOfBirth()}">дата</span></p>
+        <p class="muted" th:text="|ID: ${person.getPersonId()}|">id</p>
+    </div>
 
-<div th:if="${books.isEmpty()}">
-    <p>Человек пока не взял ни одной книги</p>
-    <hr/>
-</div>
+    <div th:if="${books.isEmpty()}" class="panel">
+        <p class="muted" style="margin:0">Пока нет взятых книг.</p>
+    </div>
 
-<div th:if="${!books.isEmpty()}">
-    <hr/>
-    <b>Книги:</b>
-    <br/>
-    <table th:each="book : ${books}">
-        <tr th:text="${book.getTitle() + ', ' + book.getAuthor() + ', ' + book.getYearPublished()}">book</tr>
-    </table>
-    <hr/>
-</div>
+    <div th:if="${!books.isEmpty()}" class="panel stack">
+        <h2 class="page-title" style="font-size:1.15rem;margin:0 0 0.5rem">Книги у читателя</h2>
+        <div style="overflow-x:auto">
+            <table class="book-table">
+                <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Автор</th>
+                    <th>Год</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="book : ${books}">
+                    <td>
+                        <a th:href="@{/books/{id}(id=${book.getBookId()})}" th:text="${book.getTitle()}">книга</a>
+                    </td>
+                    <td th:text="${book.getAuthor()}">автор</td>
+                    <td th:text="${book.getYearPublished()}">год</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-<form th:method="get" th:action="@{/people/{id}/edit(id=${person.getPersonId()})}">
-    <input type="submit" value="Редактировать"/>
-</form>
-
-<form th:method="post" th:action="@{/people/{personId}(personId=${person.getPersonId()})}">
-    <input type="hidden" name="_method" value="delete"/>
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-    <input type="submit" value="Delete"/>
-</form>
+    <div class="actions">
+        <a class="btn btn-secondary" th:href="@{/people}">Все читатели</a>
+        <form th:method="get" th:action="@{/people/{id}/edit(id=${person.getPersonId()})}">
+            <input class="btn btn-primary" type="submit" value="Редактировать"/>
+        </form>
+        <form th:method="post" th:action="@{/people/{personId}(personId=${person.getPersonId()})}"
+              onsubmit="return confirm('Удалить этого читателя?');">
+            <input type="hidden" name="_method" value="delete"/>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <input class="btn btn-danger" type="submit" value="Удалить"/>
+        </form>
+    </div>
+</th:block>
 </body>
 </html>

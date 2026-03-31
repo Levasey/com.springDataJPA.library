@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8"/>
-    <title>Conflict</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('409 — конфликт', ~{::main})}">
 <body>
-<h1>409 — Conflict</h1>
-<p th:text="${message}">Operation cannot be completed.</p>
-<p><a th:href="@{/people}">Back to people</a></p>
+<th:block th:fragment="main">
+<div class="error-page">
+    <h1 class="page-title">409</h1>
+    <p th:text="${message}">Операцию выполнить нельзя.</p>
+    <a class="btn btn-primary" th:href="@{/people}">К читателям</a>
+</div>
+</th:block>
 </body>
 </html>

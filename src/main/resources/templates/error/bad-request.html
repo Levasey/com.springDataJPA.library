@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8"/>
-    <title>Bad request</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('400 — неверный запрос', ~{::main})}">
 <body>
-<h1>400 — Bad request</h1>
-<p th:text="${message}">Invalid request.</p>
-<p><a th:href="@{/books}">Back to books</a></p>
+<th:block th:fragment="main">
+<div class="error-page">
+    <h1 class="page-title">400</h1>
+    <p th:text="${message}">Некорректный запрос.</p>
+    <a class="btn btn-primary" th:href="@{/books}">На главную</a>
+</div>
+</th:block>
 </body>
 </html>

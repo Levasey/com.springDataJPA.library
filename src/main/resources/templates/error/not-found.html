@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8"/>
-    <title>Not found</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('404 — не найдено', ~{::main})}">
 <body>
-<h1>404 — Not found</h1>
-<p th:text="${message}">Resource not found.</p>
-<p><a th:href="@{/books}">Back to books</a></p>
+<th:block th:fragment="main">
+<div class="error-page">
+    <h1 class="page-title">404</h1>
+    <p th:text="${message}">Ресурс не найден.</p>
+    <a class="btn btn-primary" th:href="@{/books}">На главную</a>
+</div>
+</th:block>
 </body>
 </html>

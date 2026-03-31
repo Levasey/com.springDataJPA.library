@@ -1,31 +1,27 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Books</title>
-</head>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('Книги', ~{::main})}">
 <body>
-
-<div th:each="book : ${booksPage.content}">
-    <a th:href="@{/books/{bookId}(bookId=${book.getBookId()})}"
-       th:text="${book.getTitle() + ', ' + book.getYearPublished()}">book</a>
-</div>
-
-<div th:if="${booksPage.totalPages > 1}">
-    <hr/>
-    <span th:text="|Страница ${booksPage.number + 1} из ${booksPage.totalPages} — всего ${booksPage.totalElements}|">page</span>
-    <br/>
-    <a th:if="${booksPage.hasPrevious()}"
-       th:href="@{/books(page=${booksPage.number}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear})}">Назад</a>
-    <span th:if="${booksPage.hasPrevious() and booksPage.hasNext()}"> · </span>
-    <a th:if="${booksPage.hasNext()}"
-       th:href="@{/books(page=${booksPage.number + 2}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear})}">Вперёд</a>
-</div>
-
-<br/>
-<hr/>
-
-<a th:href="@{/books/new}">Create new book</a>
-
+<th:block th:fragment="main">
+    <h1 class="page-title">Книги</h1>
+    <ul class="card-list">
+        <li th:each="book : ${booksPage.content}">
+            <a th:href="@{/books/{bookId}(bookId=${book.getBookId()})}"
+               th:text="${book.getTitle() + ', ' + book.getYearPublished()}">книга</a>
+        </li>
+    </ul>
+    <div class="pagination" th:if="${booksPage.totalPages > 1}">
+        <span th:text="|Страница ${booksPage.number + 1} из ${booksPage.totalPages} · всего ${booksPage.totalElements}|">страница</span>
+        <span>
+            <a th:if="${booksPage.hasPrevious()}"
+               th:href="@{/books(page=${booksPage.number}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear})}">← Назад</a>
+            <span th:if="${booksPage.hasPrevious() and booksPage.hasNext()}"> · </span>
+            <a th:if="${booksPage.hasNext()}"
+               th:href="@{/books(page=${booksPage.number + 2}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear})}">Вперёд →</a>
+        </span>
+    </div>
+    <div class="actions">
+        <a class="btn btn-primary" th:href="@{/books/new}">Добавить книгу</a>
+    </div>
+</th:block>
 </body>
 </html>

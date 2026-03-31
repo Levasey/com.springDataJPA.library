@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.stream.Collectors;
@@ -24,7 +25,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ModelAndView handleNotFound(ResourceNotFoundException ex) {
-        ModelAndView mv = new ModelAndView("error/not-found");
+        ModelAndView mv = new ModelAndView("error/404");
         mv.addObject("message", ex.getMessage());
         return mv;
     }
@@ -98,11 +99,20 @@ public class GlobalExceptionHandler {
         return mv;
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ModelAndView handleAccessDenied(AccessDeniedException ex) {
+        log.debug("Access denied", ex);
+        ModelAndView mv = new ModelAndView("error/403");
+        mv.addObject("message", "Недостаточно прав для этого действия. Войдите под учётной записью с доступом к каталогу.");
+        return mv;
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ModelAndView handleUnexpected(Exception ex) {
         log.error("Unhandled exception in MVC controller", ex);
-        ModelAndView mv = new ModelAndView("error/server-error");
+        ModelAndView mv = new ModelAndView("error/500");
         mv.addObject("message", "Something went wrong. Please try again later.");
         return mv;
     }

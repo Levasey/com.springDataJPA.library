@@ -20,7 +20,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/books/**", "/people/**").permitAll()
                         .requestMatchers("/books/**", "/people/**").hasRole("USER")
                         .anyRequest().authenticated())
-                .formLogin(Customizer.withDefaults())
+                .formLogin(login -> login
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/books", true))
                 .csrf(Customizer.withDefaults());
         return http.build();
     }

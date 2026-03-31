@@ -11,15 +11,15 @@
 </head>
 <body>
 <a class="skip-link" href="#main-content">К содержимому</a>
-<header class="site-header">
+<header class="site-header" th:with="reqUri=${#httpServletRequest != null ? #httpServletRequest.requestURI : ''}">
     <a class="brand" th:href="@{/books}">Библиотека</a>
     <nav class="nav-links" aria-label="Основная навигация">
         <a th:href="@{/books}"
-           th:attr="aria-current=${#strings.startsWith(#httpServletRequest.requestURI, '/books') and not #strings.startsWith(#httpServletRequest.requestURI, '/books/search') ? 'page' : null}">Книги</a>
+           th:attr="aria-current=${#strings.startsWith(reqUri, '/books') and not #strings.startsWith(reqUri, '/books/search') ? 'page' : null}">Книги</a>
         <a th:href="@{/people}"
-           th:attr="aria-current=${#strings.startsWith(#httpServletRequest.requestURI, '/people') ? 'page' : null}">Читатели</a>
+           th:attr="aria-current=${#strings.startsWith(reqUri, '/people') ? 'page' : null}">Читатели</a>
         <a th:href="@{/books/search}"
-           th:attr="aria-current=${#strings.startsWith(#httpServletRequest.requestURI, '/books/search') ? 'page' : null}">Поиск</a>
+           th:attr="aria-current=${#strings.startsWith(reqUri, '/books/search') ? 'page' : null}">Поиск</a>
     </nav>
 </header>
 <main id="main-content" class="container">

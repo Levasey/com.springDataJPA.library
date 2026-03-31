@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('403 — доступ запрещён', ~{::main})}">
+<body>
+<th:block th:fragment="main">
+<div class="error-page">
+    <h1 class="page-title">403</h1>
+    <p th:text="${message} ?: 'Доступ запрещён. Если вы отправляли форму — откройте страницу заново (часто это срабатывает при истёкшей сессии или устаревшем токене безопасности) и войдите снова, затем повторите действие.'">
+        Доступ запрещён.
+    </p>
+    <a class="btn btn-primary" th:href="@{/books}">На каталог</a>
+    <a class="btn btn-secondary" style="margin-left:0.5rem" th:href="@{/login}">Войти</a>
+</div>
+</th:block>
+</body>
+</html>

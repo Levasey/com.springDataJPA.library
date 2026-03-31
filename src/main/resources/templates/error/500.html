@@ -4,7 +4,7 @@
 <th:block th:fragment="main">
 <div class="error-page">
     <h1 class="page-title">500</h1>
-    <p th:text="${message}">Попробуйте позже.</p>
+    <p th:text="${message} ?: 'Попробуйте позже.'">Попробуйте позже.</p>
     <a class="btn btn-primary" th:href="@{/books}">На главную</a>
 </div>
 </th:block>

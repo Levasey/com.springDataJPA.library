@@ -4,7 +4,7 @@
 <th:block th:fragment="main">
 <div class="error-page">
     <h1 class="page-title">404</h1>
-    <p th:text="${message}">Ресурс не найден.</p>
+    <p th:text="${message} ?: 'Ресурс не найден.'">Ресурс не найден.</p>
     <a class="btn btn-primary" th:href="@{/books}">На главную</a>
 </div>
 </th:block>

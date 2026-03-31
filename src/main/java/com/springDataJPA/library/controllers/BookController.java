@@ -37,6 +37,33 @@ public class BookController {
         return "books/index";
     }
 
+    /* Литеральные пути — до @GetMapping("/{bookId}"), иначе "new"/"search" попадут в path variable. */
+    @GetMapping("/search")
+    public String searchPage() {
+        return "books/search";
+    }
+
+    @PostMapping("/search")
+    public String makeSearch(Model model, @RequestParam("query") String query) {
+        model.addAttribute("books", bookService.searchByTitle(query));
+        return "books/search";
+    }
+
+    @GetMapping("/new")
+    public String newBook(@ModelAttribute("book") Book book) {
+        return "books/new";
+    }
+
+    @PostMapping()
+    public String create(@ModelAttribute("book") @Valid Book book,
+                         BindingResult bindingResult) {
+        if (bindingResult.hasErrors())
+            return "books/new";
+
+        bookService.saveBook(book);
+        return "redirect:/books";
+    }
+
     @GetMapping("/{bookId}")
     public String show(@PathVariable("bookId") int id, Model model, @ModelAttribute("person") Person person) {
         model.addAttribute("book", bookService.findOne(id));
@@ -49,21 +76,6 @@ public class BookController {
             model.addAttribute("people", peopleService.findAll());
         }
         return "books/show";
-    }
-
-    @GetMapping("/new")
-    public String newBook(@ModelAttribute("book") Book Book) {
-        return "books/new";
-    }
-
-    @PostMapping()
-    public String create(@ModelAttribute("book") @Valid Book Book,
-                         BindingResult bindingResult) {
-        if (bindingResult.hasErrors())
-            return "books/new";
-
-        bookService.saveBook(Book);
-        return "redirect:/books";
     }
 
     @GetMapping("/{bookId}/edit")
@@ -98,16 +110,5 @@ public class BookController {
     public String assign(@PathVariable("bookId") int id, @ModelAttribute("person") Person selectedPerson) {
         bookService.assign(id, selectedPerson);
         return "redirect:/books/" + id;
-    }
-
-    @GetMapping("/search")
-    public String searchPage() {
-        return "books/search";
-    }
-
-    @PostMapping("/search")
-    public String makeSearch(Model model, @RequestParam("query") String query) {
-        model.addAttribute("books", bookService.searchByTitle(query));
-        return "books/search";
     }
 }

@@ -4,6 +4,7 @@ package com.springDataJPA.library.services;
 import com.springDataJPA.library.models.Book;
 import com.springDataJPA.library.models.Person;
 import com.springDataJPA.library.repositories.BookRepository;
+import com.springDataJPA.library.repositories.PeopleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -19,16 +20,18 @@ import java.util.Optional;
 public class BookService {
 
     private final BookRepository bookRepository;
+    private final PeopleRepository peopleRepository;
 
     @Autowired
-    public BookService(BookRepository bookRepository) {
+    public BookService(BookRepository bookRepository, PeopleRepository peopleRepository) {
         this.bookRepository = bookRepository;
+        this.peopleRepository = peopleRepository;
     }
 
 
     public List<Book> findAll(boolean sortByYear) {
         if (sortByYear)
-            return bookRepository.findAll(Sort.by("year"));
+            return bookRepository.findAll(Sort.by("year_published"));
         else
             return bookRepository.findAll();
     }
@@ -45,13 +48,11 @@ public class BookService {
 
     @Transactional
     public void update(int id, Book updatedBook) {
-        Book bookToBeUpdated = bookRepository.findById(id).get();
-
-        // добавляем по сути новую книгу (которая не находится в Persistence context), поэтому нужен save()
-        updatedBook.setBookId(id);
-        updatedBook.setOwner(bookToBeUpdated.getOwner()); // чтобы не терялась связь при обновлении
-
-        bookRepository.save(updatedBook);
+        bookRepository.findById(id).ifPresent(bookToBeUpdated -> {
+            updatedBook.setBookId(id);
+            updatedBook.setOwner(bookToBeUpdated.getOwner());
+            bookRepository.save(updatedBook);
+        });
     }
 
     @Transactional
@@ -72,11 +73,15 @@ public class BookService {
     }
 
     @Transactional
-    public void assign(int id, Person selectedPerson) {
-        bookRepository.findById(id).ifPresent(book -> {
-            book.setOwner(selectedPerson);
-            book.setTakenAt(new Date());
-        });
+    public void assign(int bookId, Person selectedPerson) {
+        if (selectedPerson == null) {
+            return;
+        }
+        peopleRepository.findById(selectedPerson.getPersonId()).ifPresent(person ->
+                bookRepository.findById(bookId).ifPresent(book -> {
+                    book.setOwner(person);
+                    book.setTakenAt(new Date());
+                }));
     }
 
     public List<Book> searchByTitle(String query) {
@@ -85,7 +90,7 @@ public class BookService {
 
     public List<Book> findWithPagination(Integer page, Integer booksPerPage, boolean sortByYear) {
         if (sortByYear)
-            return bookRepository.findAll(PageRequest.of(page, booksPerPage, Sort.by("year"))).getContent();
+            return bookRepository.findAll(PageRequest.of(page, booksPerPage, Sort.by("year_published"))).getContent();
         else
             return bookRepository.findAll(PageRequest.of(page, booksPerPage)).getContent();
     }

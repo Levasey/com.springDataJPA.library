@@ -1,8 +1,10 @@
 package com.springDataJPA.library.services;
 
+import com.springDataJPA.library.exception.ConflictException;
 import com.springDataJPA.library.exception.ResourceNotFoundException;
 import com.springDataJPA.library.models.Book;
 import com.springDataJPA.library.models.Person;
+import com.springDataJPA.library.repositories.BookRepository;
 import com.springDataJPA.library.repositories.PeopleRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,9 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +25,9 @@ class PeopleServiceTest {
 
     @Mock
     private PeopleRepository peopleRepository;
+
+    @Mock
+    private BookRepository bookRepository;
 
     @InjectMocks
     private PeopleService peopleService;
@@ -74,8 +78,17 @@ class PeopleServiceTest {
     @Test
     void delete_delegatesToRepository() {
         when(peopleRepository.existsById(9)).thenReturn(true);
+        when(bookRepository.existsByOwnerPersonId(9)).thenReturn(false);
         peopleService.delete(9);
         verify(peopleRepository).deleteById(9);
+    }
+
+    @Test
+    void delete_throwsConflictWhenPersonHasBooks() {
+        when(peopleRepository.existsById(9)).thenReturn(true);
+        when(bookRepository.existsByOwnerPersonId(9)).thenReturn(true);
+        assertThrows(ConflictException.class, () -> peopleService.delete(9));
+        verify(peopleRepository, never()).deleteById(anyInt());
     }
 
     @Test
@@ -96,11 +109,9 @@ class PeopleServiceTest {
         Person person = new Person();
         person.setPersonId(1);
         Book overdue = new Book("T", "A", 2000);
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_MONTH, -11);
-        overdue.setTakenAt(cal.getTime());
+        overdue.setTakenAt(LocalDateTime.now().minusDays(11));
         Book fresh = new Book("T2", "A2", 2001);
-        fresh.setTakenAt(new Date());
+        fresh.setTakenAt(LocalDateTime.now());
         person.setBooks(new ArrayList<>(List.of(overdue, fresh)));
 
         when(peopleRepository.findById(1)).thenReturn(Optional.of(person));
@@ -117,9 +128,7 @@ class PeopleServiceTest {
         Person person = new Person();
         person.setPersonId(1);
         Book book = new Book("T", "A", 2000);
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_MONTH, 1);
-        book.setTakenAt(cal.getTime());
+        book.setTakenAt(LocalDateTime.now().plusDays(1));
         person.setBooks(new ArrayList<>(List.of(book)));
 
         when(peopleRepository.findById(1)).thenReturn(Optional.of(person));

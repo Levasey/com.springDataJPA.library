@@ -28,15 +28,7 @@ public class BookController {
     public String index(Model model, @RequestParam(value = "page", required = false) Integer page,
                         @RequestParam(value = "books_per_page", required = false) Integer booksPerPage,
                         @RequestParam(value = "sort_by_year", required = false) boolean sortByYear) {
-
-        if (page == null || booksPerPage == null)
-            model.addAttribute("books", bookService.findAll(sortByYear)); // выдача всех книг
-        else {
-            /* Параметр page в запросе — с единицы (первая страница = 1); Spring Data — с нуля. */
-            int pageIndex = page < 1 ? 0 : page - 1;
-            model.addAttribute("books", bookService.findWithPagination(pageIndex, booksPerPage, sortByYear));
-        }
-
+        model.addAttribute("books", bookService.findForIndexPage(page, booksPerPage, sortByYear));
         return "books/index";
     }
 

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Server error</title>
+</head>
+<body>
+<h1>500 — Server error</h1>
+<p th:text="${message}">Please try again later.</p>
+<p><a th:href="@{/books}">Back to books</a></p>
+</body>
+</html>

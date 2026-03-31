@@ -1,5 +1,6 @@
 package com.springDataJPA.library.services;
 
+import com.springDataJPA.library.exception.BadRequestException;
 import com.springDataJPA.library.exception.ResourceNotFoundException;
 import com.springDataJPA.library.models.Book;
 import com.springDataJPA.library.models.Person;
@@ -16,7 +17,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -133,7 +134,7 @@ class BookServiceTest {
     void release_clearsOwnerAndTakenAt() {
         Book book = new Book("T", "A", 2000);
         book.setOwner(new Person());
-        book.setTakenAt(new Date());
+        book.setTakenAt(LocalDateTime.now());
         when(bookRepository.findById(4)).thenReturn(Optional.of(book));
 
         bookService.release(4);
@@ -150,7 +151,15 @@ class BookServiceTest {
 
     @Test
     void assign_throwsWhenPersonNull() {
-        assertThrows(ResourceNotFoundException.class, () -> bookService.assign(1, null));
+        assertThrows(BadRequestException.class, () -> bookService.assign(1, null));
+        verify(peopleRepository, never()).findById(anyInt());
+    }
+
+    @Test
+    void assign_throwsWhenPersonIdNotPositive() {
+        Person stub = new Person();
+        stub.setPersonId(0);
+        assertThrows(BadRequestException.class, () -> bookService.assign(1, stub));
         verify(peopleRepository, never()).findById(anyInt());
     }
 
@@ -191,6 +200,35 @@ class BookServiceTest {
         List<Book> list = List.of(new Book("T", "A", 2000));
         when(bookRepository.findByTitleStartingWithIgnoreCase("ab")).thenReturn(list);
         assertEquals(list, bookService.searchByTitle("ab"));
+    }
+
+    @Test
+    void searchByTitle_blankDoesNotHitRepository() {
+        assertTrue(bookService.searchByTitle("").isEmpty());
+        assertTrue(bookService.searchByTitle("   ").isEmpty());
+        verify(bookRepository, never()).findByTitleStartingWithIgnoreCase(anyString());
+    }
+
+    @Test
+    void findForIndexPage_noParamsUsesFindAll() {
+        bookService.findForIndexPage(null, null, false);
+        verify(bookRepository).findAll();
+    }
+
+    @Test
+    void findForIndexPage_onlyPageFillsDefaultPageSize() {
+        Book b = new Book("T", "A", 2000);
+        Page<Book> page = new PageImpl<>(List.of(b));
+        when(bookRepository.findAll(PageRequest.of(0, 10))).thenReturn(page);
+        assertEquals(List.of(b), bookService.findForIndexPage(1, null, false));
+    }
+
+    @Test
+    void findForIndexPage_clampsOversizedPageSize() {
+        Book b = new Book("T", "A", 2000);
+        Page<Book> page = new PageImpl<>(List.of(b));
+        when(bookRepository.findAll(PageRequest.of(0, 100))).thenReturn(page);
+        assertEquals(List.of(b), bookService.findForIndexPage(1, 500, false));
     }
 
     @Test

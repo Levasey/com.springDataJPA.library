@@ -48,27 +48,27 @@ class BookControllerTest {
 
     @Test
     void index_allBooks() throws Exception {
-        when(bookService.findAll(false)).thenReturn(List.of());
+        when(bookService.findForIndexPage(null, null, false)).thenReturn(List.of());
         mockMvc.perform(get("/books"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("books/index"));
-        verify(bookService).findAll(false);
+        verify(bookService).findForIndexPage(null, null, false);
     }
 
     @Test
-    void index_withPagination_usesZeroBasedPageFromOneBasedParam() throws Exception {
-        when(bookService.findWithPagination(0, 10, true)).thenReturn(List.of());
+    void index_withPagination_delegatesToService() throws Exception {
+        when(bookService.findForIndexPage(1, 10, true)).thenReturn(List.of());
         mockMvc.perform(get("/books").param("page", "1").param("books_per_page", "10").param("sort_by_year", "true"))
                 .andExpect(status().isOk());
-        verify(bookService).findWithPagination(0, 10, true);
+        verify(bookService).findForIndexPage(1, 10, true);
     }
 
     @Test
-    void index_withPagination_pageZeroMapsToFirstPage() throws Exception {
-        when(bookService.findWithPagination(0, 10, true)).thenReturn(List.of());
+    void index_withPagination_pageZeroClampedToFirstPage() throws Exception {
+        when(bookService.findForIndexPage(0, 10, true)).thenReturn(List.of());
         mockMvc.perform(get("/books").param("page", "0").param("books_per_page", "10").param("sort_by_year", "true"))
                 .andExpect(status().isOk());
-        verify(bookService).findWithPagination(0, 10, true);
+        verify(bookService).findForIndexPage(0, 10, true);
     }
 
     @Test

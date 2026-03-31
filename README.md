@@ -124,6 +124,71 @@ CREATE TABLE book (
 
 После успешной сборки артефакт: **`target/com.springDataJPA.library.war`** — разверните его в Tomcat (или другом контейнере) и откройте приложение по контексту, заданному при деплое.
 
+### Запуск в IntelliJ IDEA (Tomcat, локально)
+
+**Перед настройкой**
+
+- Установлен **Tomcat 9+** (или другой контейнер с **Servlet 4**), известен путь к каталогу установки.
+- В проекте задан **JDK**: *File → Project Structure → Project SDK*.
+- Есть рабочий **`hibernate.properties`** с доступом к PostgreSQL (или пароль через **`LIBRARY_DB_PASSWORD`**), иначе Spring-контекст не поднимется.
+
+**1. Подключить Tomcat к IDE**
+
+1. *File → Settings* (Windows/Linux) или *IntelliJ IDEA → Settings* (macOS).
+2. *Build, Execution, Deployment → Application Servers*.
+3. **+** → **Tomcat Server**, укажите **Tomcat Home** (корень установки Tomcat).
+4. **OK**.
+
+**2. Создать конфигурацию запуска**
+
+1. *Run → Edit Configurations…*
+2. **+** → **Tomcat Server → Local** (не Remote).
+3. Вкладка **Server** (в новых версиях может называться **Configuration**):
+   - **Application server** — выберите добавленный Tomcat;
+   - **HTTP port** — обычно **8080** (понадобится для URL);
+   - по желанию включите **Update classes and resources** (удобно вместе с *war exploded*).
+
+**3. Добавить артефакт деплоя**
+
+1. Вкладка **Deployment**.
+2. **+** → **Artifact**:
+   - **`com.springDataJPA.library:war exploded`** — удобнее для разработки (быстрее пересборка, подхват классов/ресурсов);
+   - **`com.springDataJPA.library:war`** — один WAR, ближе к продакшену.
+3. Если артефакта нет в списке: *File → Project Structure → Artifacts* — добавьте **Web Application: Exploded** или **Archive** из Maven-модуля с `packaging war`; либо выполните **`package`** в Maven-панели — IDEA часто подхватывает артефакт после импорта проекта.
+
+**4. Application context (префикс URL)**
+
+В блоке **Deploy at the server startup** у выбранного артефакта задайте **Application context**, например:
+
+- **`/com.springDataJPA.library`** — как при деплое файла `com.springDataJPA.library.war` в отдельном Tomcat;
+- **`/`** — приложение в корне сервера (аналог `ROOT.war`).
+
+**Apply → OK**.
+
+**5. Запуск**
+
+Выберите созданную конфигурацию Tomcat в тулбаре Run, нажмите **Run** (▶) или **Debug** и дождитесь успешного старта сервера в консоли.
+
+**6. Открыть сайт**
+
+Базовый адрес: **`http://localhost:<порт><Application context>`**. При порте **8080** и контексте **`/com.springDataJPA.library`**:
+
+- `http://localhost:8080/com.springDataJPA.library/people`
+- `http://localhost:8080/com.springDataJPA.library/books`
+
+При контексте **`/`**:
+
+- `http://localhost:8080/people`
+- `http://localhost:8080/books`
+
+**Частые проблемы**
+
+| Симптом | Что проверить |
+|--------|----------------|
+| Порт занят | Другой HTTP port в настройках Tomcat или освободить **8080**. |
+| **404** | Совпадает ли **Application context** с путём в адресной строке. |
+| Ошибки Spring / БД | Консоль Tomcat: URL БД, пароль, запущен ли PostgreSQL. |
+
 ---
 
 ## Полезные URL (после деплоя)

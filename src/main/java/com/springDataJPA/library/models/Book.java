@@ -5,7 +5,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "book")
@@ -31,8 +31,7 @@ public class Book {
     private int yearPublished;
 
     @Column(name = "taken_at")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date takenAt;
+    private LocalDateTime takenAt;
 
     @Transient
     private boolean expired;
@@ -58,11 +57,11 @@ public class Book {
         this.expired = expired;
     }
 
-    public Date getTakenAt() {
+    public LocalDateTime getTakenAt() {
         return takenAt;
     }
 
-    public void setTakenAt(Date takenAt) {
+    public void setTakenAt(LocalDateTime takenAt) {
         this.takenAt = takenAt;
     }
 

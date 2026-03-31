@@ -3,14 +3,17 @@ package com.springDataJPA.library.services;
 import com.springDataJPA.library.exception.ResourceNotFoundException;
 import com.springDataJPA.library.models.Book;
 import com.springDataJPA.library.models.Person;
+import com.springDataJPA.library.exception.ConflictException;
+import com.springDataJPA.library.repositories.BookRepository;
 import com.springDataJPA.library.repositories.PeopleRepository;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -21,10 +24,12 @@ public class PeopleService {
     private static final long BOOK_RETURN_OVERDUE_AFTER_MS = 10L * 24 * 60 * 60 * 1000;
 
     private final PeopleRepository peopleRepository;
+    private final BookRepository bookRepository;
 
     @Autowired
-    public PeopleService(PeopleRepository peopleRepository) {
+    public PeopleService(PeopleRepository peopleRepository, BookRepository bookRepository) {
         this.peopleRepository = peopleRepository;
+        this.bookRepository = bookRepository;
     }
 
     public List<Person> findAll() {
@@ -55,6 +60,9 @@ public class PeopleService {
         if (!peopleRepository.existsById(id)) {
             throw new ResourceNotFoundException("Person not found: id=" + id);
         }
+        if (bookRepository.existsByOwnerPersonId(id)) {
+            throw new ConflictException("Cannot delete a person who still has books on loan.");
+        }
         peopleRepository.deleteById(id);
     }
 
@@ -65,10 +73,11 @@ public class PeopleService {
             return Collections.emptyList();
         }
         Hibernate.initialize(person.getBooks());
-        Date now = new Date();
+        LocalDateTime now = LocalDateTime.now();
         person.getBooks().forEach(book -> {
-            Date takenAt = book.getTakenAt();
-            if (takenAt != null && now.getTime() - takenAt.getTime() > BOOK_RETURN_OVERDUE_AFTER_MS) {
+            LocalDateTime takenAt = book.getTakenAt();
+            if (takenAt != null
+                    && ChronoUnit.MILLIS.between(takenAt, now) > BOOK_RETURN_OVERDUE_AFTER_MS) {
                 book.setExpired(true);
             }
         });

@@ -26,11 +26,13 @@
     <hr/>
 </div>
 
-<form th:method="GET" th:action="@{/people/{id}/edit(id=${person.getPersonId()})}">
+<form th:method="get" th:action="@{/people/{id}/edit(id=${person.getPersonId()})}">
     <input type="submit" value="Редактировать"/>
 </form>
 
-<form th:method="DELETE" th:action="@{/people/{personId}(personId=${person.getPersonId()})}">
+<form th:method="post" th:action="@{/people/{personId}(personId=${person.getPersonId()})}">
+    <input type="hidden" name="_method" value="delete"/>
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
     <input type="submit" value="Delete"/>
 </form>
 </body>

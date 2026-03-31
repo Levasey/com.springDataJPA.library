@@ -1,18 +1,18 @@
 package com.springDataJPA.library.services;
 
-
 import com.springDataJPA.library.exception.BadRequestException;
 import com.springDataJPA.library.exception.ResourceNotFoundException;
 import com.springDataJPA.library.models.Book;
 import com.springDataJPA.library.models.Person;
 import com.springDataJPA.library.repositories.BookRepository;
 import com.springDataJPA.library.repositories.PeopleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-@Transactional(readOnly=true)
+@Transactional(readOnly = true)
 public class BookService {
 
     private static final int DEFAULT_PAGE_SIZE = 10;
@@ -29,22 +29,20 @@ public class BookService {
     private final BookRepository bookRepository;
     private final PeopleRepository peopleRepository;
 
-    @Autowired
     public BookService(BookRepository bookRepository, PeopleRepository peopleRepository) {
         this.bookRepository = bookRepository;
         this.peopleRepository = peopleRepository;
     }
 
-
     public List<Book> findAll(boolean sortByYear) {
-        if (sortByYear)
+        if (sortByYear) {
             return bookRepository.findAll(Sort.by("yearPublished"));
-        else
-            return bookRepository.findAll();
+        }
+        return bookRepository.findAll();
     }
 
     public Book findOne(int id) {
-        return bookRepository.findById(id)
+        return bookRepository.findWithOwnerById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found: id=" + id));
     }
 
@@ -57,9 +55,9 @@ public class BookService {
     public void update(int id, Book updatedBook) {
         Book bookToBeUpdated = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found: id=" + id));
-        updatedBook.setBookId(id);
-        updatedBook.setOwner(bookToBeUpdated.getOwner());
-        bookRepository.save(updatedBook);
+        bookToBeUpdated.setTitle(updatedBook.getTitle());
+        bookToBeUpdated.setAuthor(updatedBook.getAuthor());
+        bookToBeUpdated.setYearPublished(updatedBook.getYearPublished());
     }
 
     @Transactional
@@ -68,12 +66,6 @@ public class BookService {
             throw new ResourceNotFoundException("Book not found: id=" + id);
         }
         bookRepository.deleteById(id);
-    }
-
-    public Person getBookOwner(int id) {
-        Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found: id=" + id));
-        return book.getOwner();
     }
 
     @Transactional
@@ -85,13 +77,12 @@ public class BookService {
     }
 
     @Transactional
-    public void assign(int bookId, Person selectedPerson) {
-        if (selectedPerson == null || selectedPerson.getPersonId() <= 0) {
+    public void assign(int bookId, int personId) {
+        if (personId <= 0) {
             throw new BadRequestException("Choose a reader to assign the book.");
         }
-        Person person = peopleRepository.findById(selectedPerson.getPersonId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Person not found: id=" + selectedPerson.getPersonId()));
+        Person person = peopleRepository.findById(personId)
+                .orElseThrow(() -> new ResourceNotFoundException("Person not found: id=" + personId));
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found: id=" + bookId));
         book.setOwner(person);
@@ -102,16 +93,18 @@ public class BookService {
         if (!StringUtils.hasText(query)) {
             return Collections.emptyList();
         }
-        return bookRepository.findByTitleStartingWithIgnoreCase(query.trim());
+        return bookRepository.findByTitleContainingIgnoreCase(query.trim());
     }
 
     /**
-     * Список для главной страницы книг: без параметров — все книги; с любым из параметров пагинации —
-     * страница с подстановкой значений по умолчанию и ограничением размера страницы.
+     * Без параметров пагинации — одна «страница» со всеми книгами; иначе — страница Spring Data.
      */
-    public List<Book> findForIndexPage(Integer page, Integer booksPerPage, boolean sortByYear) {
+    public Page<Book> findForIndexPage(Integer page, Integer booksPerPage, boolean sortByYear) {
         if (page == null && booksPerPage == null) {
-            return findAll(sortByYear);
+            List<Book> content = sortByYear
+                    ? bookRepository.findAll(Sort.by("yearPublished"))
+                    : bookRepository.findAll();
+            return new PageImpl<>(content);
         }
         int pageOneBased = page == null ? 1 : page;
         int size = booksPerPage == null ? DEFAULT_PAGE_SIZE : booksPerPage;
@@ -127,10 +120,10 @@ public class BookService {
         return findWithPagination(pageOneBased - 1, size, sortByYear);
     }
 
-    public List<Book> findWithPagination(Integer page, Integer booksPerPage, boolean sortByYear) {
-        if (sortByYear)
-            return bookRepository.findAll(PageRequest.of(page, booksPerPage, Sort.by("yearPublished"))).getContent();
-        else
-            return bookRepository.findAll(PageRequest.of(page, booksPerPage)).getContent();
+    public Page<Book> findWithPagination(Integer page, Integer booksPerPage, boolean sortByYear) {
+        Pageable pageable = sortByYear
+                ? PageRequest.of(page, booksPerPage, Sort.by("yearPublished"))
+                : PageRequest.of(page, booksPerPage);
+        return bookRepository.findAll(pageable);
     }
 }

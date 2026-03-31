@@ -2,13 +2,11 @@ package com.springDataJPA.library.controllers;
 
 import com.springDataJPA.library.models.Person;
 import com.springDataJPA.library.services.PeopleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/people")
@@ -16,7 +14,6 @@ public class PeopleController {
 
     private final PeopleService peopleService;
 
-    @Autowired
     public PeopleController(PeopleService peopleService) {
         this.peopleService = peopleService;
     }

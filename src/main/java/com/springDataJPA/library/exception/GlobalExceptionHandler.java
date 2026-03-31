@@ -1,17 +1,24 @@
 package com.springDataJPA.library.exception;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final Log log = LogFactory.getLog(GlobalExceptionHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -40,6 +47,42 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ModelAndView handleIllegalArgument(IllegalArgumentException ex) {
+        ModelAndView mv = new ModelAndView("error/bad-request");
+        mv.addObject("message", ex.getMessage());
+        return mv;
+    }
+
+    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ModelAndView handleBindingOrNotValid(Exception ex) {
+        String message = "Invalid input. Please check the form and try again.";
+        if (ex instanceof MethodArgumentNotValidException manve && manve.getBindingResult().getFieldError() != null) {
+            message = manve.getBindingResult().getFieldError().getDefaultMessage();
+        } else if (ex instanceof BindException be && be.getBindingResult().getFieldError() != null) {
+            message = be.getBindingResult().getFieldError().getDefaultMessage();
+        }
+        ModelAndView mv = new ModelAndView("error/bad-request");
+        mv.addObject("message", message);
+        return mv;
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ModelAndView handleConstraintViolation(ConstraintViolationException ex) {
+        String message = ex.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining(" "));
+        if (message.isBlank()) {
+            message = "Invalid input.";
+        }
+        ModelAndView mv = new ModelAndView("error/bad-request");
+        mv.addObject("message", message);
+        return mv;
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ModelAndView handleMethodValidation(HandlerMethodValidationException ex) {
         ModelAndView mv = new ModelAndView("error/bad-request");
         mv.addObject("message", ex.getMessage());
         return mv;

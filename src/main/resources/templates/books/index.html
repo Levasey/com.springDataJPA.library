@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Books</title>
+</head>
+<body>
+
+<div th:each="book : ${booksPage.content}">
+    <a th:href="@{/books/{bookId}(bookId=${book.getBookId()})}"
+       th:text="${book.getTitle() + ', ' + book.getYearPublished()}">book</a>
+</div>
+
+<div th:if="${booksPage.totalPages > 1}">
+    <hr/>
+    <span th:text="|Страница ${booksPage.number + 1} из ${booksPage.totalPages} — всего ${booksPage.totalElements}|">page</span>
+    <br/>
+    <a th:if="${booksPage.hasPrevious()}"
+       th:href="@{/books(page=${booksPage.number}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear})}">Назад</a>
+    <span th:if="${booksPage.hasPrevious() and booksPage.hasNext()}"> · </span>
+    <a th:if="${booksPage.hasNext()}"
+       th:href="@{/books(page=${booksPage.number + 2}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear})}">Вперёд</a>
+</div>
+
+<br/>
+<hr/>
+
+<a th:href="@{/books/new}">Create new book</a>
+
+</body>
+</html>

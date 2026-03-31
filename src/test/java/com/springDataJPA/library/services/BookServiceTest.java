@@ -53,13 +53,13 @@ class BookServiceTest {
     @Test
     void findOne_returnsBookWhenPresent() {
         Book book = new Book("T", "A", 2000);
-        when(bookRepository.findById(1)).thenReturn(Optional.of(book));
+        when(bookRepository.findWithOwnerById(1)).thenReturn(Optional.of(book));
         assertSame(book, bookService.findOne(1));
     }
 
     @Test
     void findOne_throwsWhenMissing() {
-        when(bookRepository.findById(99)).thenReturn(Optional.empty());
+        when(bookRepository.findWithOwnerById(99)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> bookService.findOne(99));
     }
 
@@ -72,7 +72,7 @@ class BookServiceTest {
     }
 
     @Test
-    void update_preservesOwnerAndSetsId() {
+    void update_patchesManagedEntityWithoutSave() {
         Person owner = new Person();
         owner.setPersonId(5);
         Book existing = new Book("Old", "Auth", 1999);
@@ -82,11 +82,11 @@ class BookServiceTest {
         Book updated = new Book("New", "Auth2", 2001);
         bookService.update(3, updated);
 
-        ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
-        verify(bookRepository).save(captor.capture());
-        Book saved = captor.getValue();
-        assertEquals(3, saved.getBookId());
-        assertSame(owner, saved.getOwner());
+        assertEquals("New", existing.getTitle());
+        assertEquals("Auth2", existing.getAuthor());
+        assertEquals(2001, existing.getYearPublished());
+        assertSame(owner, existing.getOwner());
+        verify(bookRepository, never()).save(any());
     }
 
     @Test
@@ -112,25 +112,6 @@ class BookServiceTest {
     }
 
     @Test
-    void getBookOwner_returnsOwnerOrNull() {
-        Person owner = new Person();
-        Book book = new Book("T", "A", 2000);
-        book.setOwner(owner);
-        when(bookRepository.findById(2)).thenReturn(Optional.of(book));
-        assertSame(owner, bookService.getBookOwner(2));
-
-        Book noOwner = new Book("T", "A", 2001);
-        when(bookRepository.findById(3)).thenReturn(Optional.of(noOwner));
-        assertNull(bookService.getBookOwner(3));
-    }
-
-    @Test
-    void getBookOwner_throwsWhenBookMissing() {
-        when(bookRepository.findById(9)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> bookService.getBookOwner(9));
-    }
-
-    @Test
     void release_clearsOwnerAndTakenAt() {
         Book book = new Book("T", "A", 2000);
         book.setOwner(new Person());
@@ -150,35 +131,23 @@ class BookServiceTest {
     }
 
     @Test
-    void assign_throwsWhenPersonNull() {
-        assertThrows(BadRequestException.class, () -> bookService.assign(1, null));
-        verify(peopleRepository, never()).findById(anyInt());
-    }
-
-    @Test
     void assign_throwsWhenPersonIdNotPositive() {
-        Person stub = new Person();
-        stub.setPersonId(0);
-        assertThrows(BadRequestException.class, () -> bookService.assign(1, stub));
+        assertThrows(BadRequestException.class, () -> bookService.assign(1, 0));
         verify(peopleRepository, never()).findById(anyInt());
     }
 
     @Test
     void assign_throwsWhenPersonMissing() {
-        Person stub = new Person();
-        stub.setPersonId(10);
         when(peopleRepository.findById(10)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> bookService.assign(8, stub));
+        assertThrows(ResourceNotFoundException.class, () -> bookService.assign(8, 10));
         verify(bookRepository, never()).findById(anyInt());
     }
 
     @Test
     void assign_throwsWhenBookMissing() {
-        Person person = new Person();
-        person.setPersonId(10);
-        when(peopleRepository.findById(10)).thenReturn(Optional.of(person));
+        when(peopleRepository.findById(10)).thenReturn(Optional.of(new Person()));
         when(bookRepository.findById(8)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> bookService.assign(8, person));
+        assertThrows(ResourceNotFoundException.class, () -> bookService.assign(8, 10));
     }
 
     @Test
@@ -189,7 +158,7 @@ class BookServiceTest {
         when(peopleRepository.findById(10)).thenReturn(Optional.of(person));
         when(bookRepository.findById(8)).thenReturn(Optional.of(book));
 
-        bookService.assign(8, person);
+        bookService.assign(8, 10);
 
         assertSame(person, book.getOwner());
         assertNotNull(book.getTakenAt());
@@ -198,7 +167,7 @@ class BookServiceTest {
     @Test
     void searchByTitle_delegatesToRepository() {
         List<Book> list = List.of(new Book("T", "A", 2000));
-        when(bookRepository.findByTitleStartingWithIgnoreCase("ab")).thenReturn(list);
+        when(bookRepository.findByTitleContainingIgnoreCase("ab")).thenReturn(list);
         assertEquals(list, bookService.searchByTitle("ab"));
     }
 
@@ -206,44 +175,50 @@ class BookServiceTest {
     void searchByTitle_blankDoesNotHitRepository() {
         assertTrue(bookService.searchByTitle("").isEmpty());
         assertTrue(bookService.searchByTitle("   ").isEmpty());
-        verify(bookRepository, never()).findByTitleStartingWithIgnoreCase(anyString());
+        verify(bookRepository, never()).findByTitleContainingIgnoreCase(anyString());
     }
 
     @Test
     void findForIndexPage_noParamsUsesFindAll() {
-        bookService.findForIndexPage(null, null, false);
+        when(bookRepository.findAll()).thenReturn(List.of());
+        Page<Book> page = bookService.findForIndexPage(null, null, false);
         verify(bookRepository).findAll();
+        assertTrue(page.getContent().isEmpty());
     }
 
     @Test
     void findForIndexPage_onlyPageFillsDefaultPageSize() {
         Book b = new Book("T", "A", 2000);
-        Page<Book> page = new PageImpl<>(List.of(b));
-        when(bookRepository.findAll(PageRequest.of(0, 10))).thenReturn(page);
-        assertEquals(List.of(b), bookService.findForIndexPage(1, null, false));
+        Page<Book> repoPage = new PageImpl<>(List.of(b));
+        when(bookRepository.findAll(PageRequest.of(0, 10))).thenReturn(repoPage);
+        Page<Book> result = bookService.findForIndexPage(1, null, false);
+        assertEquals(List.of(b), result.getContent());
     }
 
     @Test
     void findForIndexPage_clampsOversizedPageSize() {
         Book b = new Book("T", "A", 2000);
-        Page<Book> page = new PageImpl<>(List.of(b));
-        when(bookRepository.findAll(PageRequest.of(0, 100))).thenReturn(page);
-        assertEquals(List.of(b), bookService.findForIndexPage(1, 500, false));
+        Page<Book> repoPage = new PageImpl<>(List.of(b));
+        when(bookRepository.findAll(PageRequest.of(0, 100))).thenReturn(repoPage);
+        Page<Book> result = bookService.findForIndexPage(1, 500, false);
+        assertEquals(List.of(b), result.getContent());
     }
 
     @Test
     void findWithPagination_appliesSortWhenRequested() {
         Book b = new Book("T", "A", 2000);
-        Page<Book> page = new PageImpl<>(List.of(b));
-        when(bookRepository.findAll(PageRequest.of(1, 5, Sort.by("yearPublished")))).thenReturn(page);
-        assertEquals(List.of(b), bookService.findWithPagination(1, 5, true));
+        Page<Book> repoPage = new PageImpl<>(List.of(b));
+        when(bookRepository.findAll(PageRequest.of(1, 5, Sort.by("yearPublished")))).thenReturn(repoPage);
+        Page<Book> result = bookService.findWithPagination(1, 5, true);
+        assertEquals(List.of(b), result.getContent());
     }
 
     @Test
     void findWithPagination_withoutSort() {
         Book b = new Book("T", "A", 2000);
-        Page<Book> page = new PageImpl<>(List.of(b));
-        when(bookRepository.findAll(PageRequest.of(0, 10))).thenReturn(page);
-        assertEquals(List.of(b), bookService.findWithPagination(0, 10, false));
+        Page<Book> repoPage = new PageImpl<>(List.of(b));
+        when(bookRepository.findAll(PageRequest.of(0, 10))).thenReturn(repoPage);
+        Page<Book> result = bookService.findWithPagination(0, 10, false);
+        assertEquals(List.of(b), result.getContent());
     }
 }

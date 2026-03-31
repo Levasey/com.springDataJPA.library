@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -48,7 +49,7 @@ class BookControllerTest {
 
     @Test
     void index_allBooks() throws Exception {
-        when(bookService.findForIndexPage(null, null, false)).thenReturn(List.of());
+        when(bookService.findForIndexPage(null, null, false)).thenReturn(new PageImpl<>(List.of()));
         mockMvc.perform(get("/books"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("books/index"));
@@ -57,7 +58,7 @@ class BookControllerTest {
 
     @Test
     void index_withPagination_delegatesToService() throws Exception {
-        when(bookService.findForIndexPage(1, 10, true)).thenReturn(List.of());
+        when(bookService.findForIndexPage(1, 10, true)).thenReturn(new PageImpl<>(List.of()));
         mockMvc.perform(get("/books").param("page", "1").param("books_per_page", "10").param("sort_by_year", "true"))
                 .andExpect(status().isOk());
         verify(bookService).findForIndexPage(1, 10, true);
@@ -65,7 +66,7 @@ class BookControllerTest {
 
     @Test
     void index_withPagination_pageZeroClampedToFirstPage() throws Exception {
-        when(bookService.findForIndexPage(0, 10, true)).thenReturn(List.of());
+        when(bookService.findForIndexPage(0, 10, true)).thenReturn(new PageImpl<>(List.of()));
         mockMvc.perform(get("/books").param("page", "0").param("books_per_page", "10").param("sort_by_year", "true"))
                 .andExpect(status().isOk());
         verify(bookService).findForIndexPage(0, 10, true);
@@ -114,8 +115,8 @@ class BookControllerTest {
     void show_withOwner() throws Exception {
         Book book = new Book("T", "A", 2000);
         Person owner = new Person();
+        book.setOwner(owner);
         when(bookService.findOne(1)).thenReturn(book);
-        when(bookService.getBookOwner(1)).thenReturn(owner);
         mockMvc.perform(get("/books/1"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("books/show"));
@@ -125,7 +126,6 @@ class BookControllerTest {
     void show_withoutOwner_loadsPeople() throws Exception {
         Book book = new Book("T", "A", 2000);
         when(bookService.findOne(2)).thenReturn(book);
-        when(bookService.getBookOwner(2)).thenReturn(null);
         when(peopleService.findAll()).thenReturn(List.of());
         mockMvc.perform(get("/books/2"))
                 .andExpect(status().isOk());
@@ -163,6 +163,6 @@ class BookControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("personId", "9"))
                 .andExpect(redirectedUrl("/books/6"));
-        verify(bookService).assign(eq(6), any(Person.class));
+        verify(bookService).assign(6, 9);
     }
 }

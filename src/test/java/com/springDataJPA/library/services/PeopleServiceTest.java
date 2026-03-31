@@ -99,9 +99,9 @@ class PeopleServiceTest {
     }
 
     @Test
-    void getBooksByPersonId_returnsEmptyWhenPersonMissing() {
+    void getBooksByPersonId_throwsWhenPersonMissing() {
         when(peopleRepository.findById(1)).thenReturn(Optional.empty());
-        assertTrue(peopleService.getBooksByPersonId(1).isEmpty());
+        assertThrows(ResourceNotFoundException.class, () -> peopleService.getBooksByPersonId(1));
     }
 
     @Test

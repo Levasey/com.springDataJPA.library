@@ -1,35 +1,40 @@
 package com.springDataJPA.library.repositories;
 
-import com.springDataJPA.library.config.TestJpaConfig;
 import com.springDataJPA.library.models.Book;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = TestJpaConfig.class)
-@Transactional
+@DataJpaTest
+@ActiveProfiles("test")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class BookRepositoryTest {
 
     @Autowired
     private BookRepository bookRepository;
 
     @Test
-    void findByTitleStartingWithIgnoreCase_matchesPrefixRegardlessOfCase() {
+    void findByTitleContainingIgnoreCase_matchesSubstringRegardlessOfCase() {
         bookRepository.save(new Book("Alpha Tale", "A1", 2000));
         bookRepository.save(new Book("Beta Story", "B2", 2001));
         bookRepository.flush();
 
-        List<Book> found = bookRepository.findByTitleStartingWithIgnoreCase("alp");
+        List<Book> found = bookRepository.findByTitleContainingIgnoreCase("pha t");
 
         assertEquals(1, found.size());
         assertEquals("Alpha Tale", found.get(0).getTitle());
+    }
+
+    @Test
+    void findWithOwnerById_loadsOwner() {
+        // smoke: entity manager + query parse
+        assertTrue(bookRepository.findWithOwnerById(999).isEmpty());
     }
 }

@@ -1,5 +1,5 @@
-### Secrets & local DB — use hibernate.properties.example as a template
-src/main/resources/hibernate.properties
+### Secrets & local DB — copy from application-local.yml.example
+src/main/resources/application-local.yml
 
 target/
 !.mvn/wrapper/maven-wrapper.jar

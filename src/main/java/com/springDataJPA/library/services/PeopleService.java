@@ -1,32 +1,28 @@
 package com.springDataJPA.library.services;
 
+import com.springDataJPA.library.exception.ConflictException;
 import com.springDataJPA.library.exception.ResourceNotFoundException;
 import com.springDataJPA.library.models.Book;
 import com.springDataJPA.library.models.Person;
-import com.springDataJPA.library.exception.ConflictException;
 import com.springDataJPA.library.repositories.BookRepository;
 import com.springDataJPA.library.repositories.PeopleRepository;
 import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.List;
 
 @Service
-@Transactional(readOnly=true)
+@Transactional(readOnly = true)
 public class PeopleService {
 
-    /** Срок выдачи: помечаем книгу как просроченную, если с момента {@code takenAt} прошло больше 10 суток. */
-    private static final long BOOK_RETURN_OVERDUE_AFTER_MS = 10L * 24 * 60 * 60 * 1000;
+    private static final Duration BOOK_RETURN_OVERDUE_AFTER = Duration.ofDays(10);
 
     private final PeopleRepository peopleRepository;
     private final BookRepository bookRepository;
 
-    @Autowired
     public PeopleService(PeopleRepository peopleRepository, BookRepository bookRepository) {
         this.peopleRepository = peopleRepository;
         this.bookRepository = bookRepository;
@@ -67,21 +63,17 @@ public class PeopleService {
     }
 
     public List<Book> getBooksByPersonId(int id) {
-        Person person = peopleRepository.findById(id).orElse(null);
-
-        if (person == null) {
-            return Collections.emptyList();
-        }
+        Person person = peopleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Person not found: id=" + id));
         Hibernate.initialize(person.getBooks());
         LocalDateTime now = LocalDateTime.now();
+        LocalDateTime overdueThreshold = now.minus(BOOK_RETURN_OVERDUE_AFTER);
         person.getBooks().forEach(book -> {
             LocalDateTime takenAt = book.getTakenAt();
-            if (takenAt != null
-                    && ChronoUnit.MILLIS.between(takenAt, now) > BOOK_RETURN_OVERDUE_AFTER_MS) {
+            if (takenAt != null && takenAt.isBefore(overdueThreshold)) {
                 book.setExpired(true);
             }
         });
         return person.getBooks();
     }
-
 }

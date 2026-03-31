@@ -1,14 +1,13 @@
 package com.springDataJPA.library.models;
 
-import javax.persistence.*;
-import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.NotEmpty;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
 
-
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.List;
 
@@ -21,12 +20,12 @@ public class Person {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int personId;
 
-    @NotEmpty(message = "Name shouldn't be empty")
+    @NotBlank(message = "Name shouldn't be empty")
     @Size(min = 2, max = 30, message = "Name should be between 2 and 30 characters")
     @Column(name = "name")
     private String name;
 
-    @NotEmpty(message = "Surname shouldn't be empty")
+    @NotBlank(message = "Surname shouldn't be empty")
     @Size(min = 2, max = 30, message = "Surname should be between 2 and 30 characters")
     @Column(name = "surname")
     private String surname;
@@ -35,7 +34,7 @@ public class Person {
     @Column(name = "age")
     private int age;
 
-    @NotEmpty(message = "Email shouldn't be empty")
+    @NotBlank(message = "Email shouldn't be empty")
     @Email(message = "Email should be valid")
     @Column(name = "email")
     private String email;
@@ -52,7 +51,8 @@ public class Person {
     @OneToMany(mappedBy = "owner")
     private List<Book> books;
 
-    public Person() {}
+    public Person() {
+    }
 
     public Person(String name, String surname, int age, String email, String address, Date dateOfBirth) {
         this.name = name;

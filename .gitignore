@@ -1,3 +1,6 @@
+### Secrets & local DB — use hibernate.properties.example as a template
+src/main/resources/hibernate.properties
+
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/

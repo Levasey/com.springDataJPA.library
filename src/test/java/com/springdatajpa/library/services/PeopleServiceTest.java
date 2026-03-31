@@ -1,0 +1,151 @@
+package com.springdatajpa.library.services;
+
+import com.springdatajpa.library.dto.PersonForm;
+import com.springdatajpa.library.exception.ConflictException;
+import com.springdatajpa.library.exception.ResourceNotFoundException;
+import com.springdatajpa.library.models.Book;
+import com.springdatajpa.library.models.Person;
+import com.springdatajpa.library.repositories.BookRepository;
+import com.springdatajpa.library.repositories.PeopleRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class PeopleServiceTest {
+
+    @Mock
+    private PeopleRepository peopleRepository;
+
+    @Mock
+    private BookRepository bookRepository;
+
+    @InjectMocks
+    private PeopleService peopleService;
+
+    @Test
+    void findAll_delegatesToRepository() {
+        List<Person> list = List.of(new Person());
+        when(peopleRepository.findAll()).thenReturn(list);
+        assertSame(list, peopleService.findAll());
+    }
+
+    @Test
+    void findById_returnsPersonWhenPresent() {
+        Person p = new Person();
+        when(peopleRepository.findById(1)).thenReturn(Optional.of(p));
+        assertSame(p, peopleService.findById(1));
+    }
+
+    @Test
+    void findById_throwsWhenMissing() {
+        when(peopleRepository.findById(2)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> peopleService.findById(2));
+    }
+
+    @Test
+    void save_delegatesToRepository() {
+        PersonForm form = new PersonForm();
+        form.setName("N");
+        form.setSurname("S");
+        form.setEmail("n@s.com");
+        form.setAddress("USA, Boston, 111111");
+        peopleService.save(form);
+        verify(peopleRepository).save(any(Person.class));
+    }
+
+    @Test
+    void update_appliesFormToManagedPerson() {
+        Person existing = new Person();
+        existing.setPersonId(3);
+        when(peopleRepository.findById(3)).thenReturn(Optional.of(existing));
+        PersonForm form = new PersonForm();
+        form.setName("New");
+        form.setSurname("Name");
+        form.setEmail("e@example.com");
+        form.setAddress("USA, Boston, 123456");
+
+        peopleService.update(3, form);
+
+        assertEquals("New", existing.getName());
+        assertEquals("Name", existing.getSurname());
+        verify(peopleRepository, never()).save(any());
+    }
+
+    @Test
+    void update_throwsWhenPersonMissing() {
+        when(peopleRepository.findById(3)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> peopleService.update(3, new PersonForm()));
+        verify(peopleRepository, never()).save(any());
+    }
+
+    @Test
+    void delete_delegatesToRepository() {
+        when(peopleRepository.existsById(9)).thenReturn(true);
+        when(bookRepository.existsByOwnerPersonId(9)).thenReturn(false);
+        peopleService.delete(9);
+        verify(peopleRepository).deleteById(9);
+    }
+
+    @Test
+    void delete_throwsConflictWhenPersonHasBooks() {
+        when(peopleRepository.existsById(9)).thenReturn(true);
+        when(bookRepository.existsByOwnerPersonId(9)).thenReturn(true);
+        assertThrows(ConflictException.class, () -> peopleService.delete(9));
+        verify(peopleRepository, never()).deleteById(anyInt());
+    }
+
+    @Test
+    void delete_throwsWhenMissing() {
+        when(peopleRepository.existsById(9)).thenReturn(false);
+        assertThrows(ResourceNotFoundException.class, () -> peopleService.delete(9));
+        verify(peopleRepository, never()).deleteById(anyInt());
+    }
+
+    @Test
+    void getBooksByPersonId_throwsWhenPersonMissing() {
+        when(peopleRepository.existsById(1)).thenReturn(false);
+        assertThrows(ResourceNotFoundException.class, () -> peopleService.getBooksByPersonId(1));
+    }
+
+    @Test
+    void getBooksByPersonId_marksOverdueBooksExpired() {
+        when(peopleRepository.existsById(1)).thenReturn(true);
+        Book overdue = new Book("T", "A", 2000);
+        overdue.setTakenAt(LocalDateTime.now().minusDays(11));
+        Book fresh = new Book("T2", "A2", 2001);
+        fresh.setTakenAt(LocalDateTime.now());
+
+        when(bookRepository.findBorrowedBooksWithOwnerByPersonId(1))
+                .thenReturn(new ArrayList<>(List.of(overdue, fresh)));
+
+        List<Book> books = peopleService.getBooksByPersonId(1);
+
+        assertEquals(2, books.size());
+        assertTrue(overdue.isExpired());
+        assertFalse(fresh.isExpired());
+    }
+
+    @Test
+    void getBooksByPersonId_doesNotMarkExpiredWhenTakenAtInFuture() {
+        when(peopleRepository.existsById(1)).thenReturn(true);
+        Book book = new Book("T", "A", 2000);
+        book.setTakenAt(LocalDateTime.now().plusDays(1));
+
+        when(bookRepository.findBorrowedBooksWithOwnerByPersonId(1)).thenReturn(new ArrayList<>(List.of(book)));
+
+        peopleService.getBooksByPersonId(1);
+
+        assertFalse(book.isExpired());
+    }
+}

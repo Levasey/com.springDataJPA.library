@@ -8,11 +8,15 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    open-in-view: true
+    open-in-view: false
     show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         format_sql: true
+  security:
+    user:
+      name: admin
+      password: '{noop}changeme'
 
 logging:
   level:

@@ -7,5 +7,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+    open-in-view: false
   flyway:
     enabled: false
+  security:
+    user:
+      name: test
+      password: "{noop}test"

@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<form th:method="POST" th:action="@{/people}" th:object="${person}">
+<form th:method="POST" th:action="@{/people}" th:object="${personForm}">
     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
     <label for="name">Enter name: </label>
     <input type="text" th:field="*{name}" id="name"/>
@@ -15,10 +15,6 @@
     <label for="surname">Enter surname: </label>
     <input type="text" th:field="*{surname}" id="surname"/>
     <div style="color: red" th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}">Surname error</div>
-    <br/>
-    <label for="age">Enter age: </label>
-    <input type="text" th:field="*{age}" id="age"/>
-    <div style="color: red" th:if="${#fields.hasErrors('age')}" th:errors="*{age}">Age error</div>
     <br/>
     <label for="date_of_birth">Enter date of birth: </label>
     <input type="date" th:field="*{dateOfBirth}" id="date_of_birth"/>

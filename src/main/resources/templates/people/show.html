@@ -5,7 +5,7 @@
     <title>Show person</title>
 </head>
 <body>
-<p th:text="${person.getName() + ', '+ person.getSurname() + ', '  + person.getAge()}">VALUE</p>
+<p th:text="${person.getName() + ', '+ person.getSurname()}">VALUE</p>
 <p th:text="${'Email: ' + person.getEmail()}">VALUE</p>
 <p th:text="${'Address: ' + person.getAddress()}">VALUE</p>
 <p th:text="${'Date of birth: ' + person.getDateOfBirth()}">VALUE</p>

@@ -321,6 +321,18 @@ input.btn {
   border-bottom: none;
 }
 
+.result-title-link {
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.result-title-link:hover,
+.result-title-link:focus-visible {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
 .status-free {
   color: var(--success);
   font-weight: 500;

@@ -82,11 +82,11 @@ class BookControllerTest {
 
     @Test
     void search_withQuery() throws Exception {
-        when(bookService.searchByTitle("abc")).thenReturn(List.of());
+        when(bookService.searchBooks("abc")).thenReturn(List.of());
         mockMvc.perform(get("/books/search").param("q", "abc"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("books/search"));
-        verify(bookService).searchByTitle("abc");
+        verify(bookService).searchBooks("abc");
     }
 
     @Test

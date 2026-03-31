@@ -16,6 +16,9 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     @EntityGraph(attributePaths = "owner")
     List<Book> findByTitleContainingIgnoreCase(String title);
 
+    @EntityGraph(attributePaths = "owner")
+    List<Book> findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase(String titlePart, String authorPart);
+
     boolean existsByOwnerPersonId(int personId);
 
     @EntityGraph(attributePaths = "owner")

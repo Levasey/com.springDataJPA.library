@@ -88,7 +88,7 @@ public class BookService {
         book.setTakenAt(LocalDateTime.now());
     }
 
-    public List<Book> searchByTitle(String query) {
+    public List<Book> searchBooks(String query) {
         if (!StringUtils.hasText(query)) {
             return Collections.emptyList();
         }
@@ -96,7 +96,7 @@ public class BookService {
         if (q.length() > 200) {
             q = q.substring(0, 200);
         }
-        return bookRepository.findByTitleContainingIgnoreCase(q);
+        return bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase(q, q);
     }
 
     /**

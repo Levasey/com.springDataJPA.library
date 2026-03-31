@@ -175,26 +175,26 @@ class BookServiceTest {
     }
 
     @Test
-    void searchByTitle_delegatesToRepository() {
+    void searchBooks_delegatesToRepository() {
         List<Book> list = List.of(new Book("T", "A", 2000));
-        when(bookRepository.findByTitleContainingIgnoreCase("ab")).thenReturn(list);
-        assertEquals(list, bookService.searchByTitle("ab"));
+        when(bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase("ab", "ab")).thenReturn(list);
+        assertEquals(list, bookService.searchBooks("ab"));
     }
 
     @Test
-    void searchByTitle_blankDoesNotHitRepository() {
-        assertTrue(bookService.searchByTitle("").isEmpty());
-        assertTrue(bookService.searchByTitle("   ").isEmpty());
-        verify(bookRepository, never()).findByTitleContainingIgnoreCase(anyString());
+    void searchBooks_blankDoesNotHitRepository() {
+        assertTrue(bookService.searchBooks("").isEmpty());
+        assertTrue(bookService.searchBooks("   ").isEmpty());
+        verify(bookRepository, never()).findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase(anyString(), anyString());
     }
 
     @Test
-    void searchByTitle_trimsAndClampsLength() {
-        bookService.searchByTitle("  x  ");
-        verify(bookRepository).findByTitleContainingIgnoreCase("x");
+    void searchBooks_trimsAndClampsLength() {
+        bookService.searchBooks("  x  ");
+        verify(bookRepository).findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase("x", "x");
         String longQ = "a".repeat(250);
-        bookService.searchByTitle(longQ);
-        verify(bookRepository).findByTitleContainingIgnoreCase("a".repeat(200));
+        bookService.searchBooks(longQ);
+        verify(bookRepository).findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase("a".repeat(200), "a".repeat(200));
     }
 
     @Test

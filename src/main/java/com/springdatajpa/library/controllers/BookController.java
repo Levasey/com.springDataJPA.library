@@ -41,7 +41,7 @@ public class BookController {
     public String search(@RequestParam(value = "q", required = false) String q, Model model) {
         if (StringUtils.hasText(q)) {
             String trimmed = q.trim();
-            model.addAttribute("books", bookService.searchByTitle(trimmed));
+            model.addAttribute("books", bookService.searchBooks(trimmed));
             model.addAttribute("q", trimmed.length() > 200 ? trimmed.substring(0, 200) : trimmed);
         }
         return "books/search";

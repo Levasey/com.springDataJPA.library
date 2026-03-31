@@ -3,7 +3,6 @@ package com.springdatajpa.library.models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
@@ -33,7 +32,6 @@ public class Person {
     @Column(name = "email")
     private String email;
 
-    @Pattern(regexp = "[A-Z]\\w+, [A-Z]\\w+, \\d{6}", message = "Your address should be in this format: Country, City, Postal Code (6 digits)")
     @Column(name = "address")
     private String address;
 

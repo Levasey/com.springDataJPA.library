@@ -10,7 +10,3 @@ spring:
     open-in-view: false
   flyway:
     enabled: false
-  security:
-    user:
-      name: test
-      password: "{noop}test"

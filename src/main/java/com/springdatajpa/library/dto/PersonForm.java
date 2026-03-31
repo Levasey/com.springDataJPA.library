@@ -3,7 +3,6 @@ package com.springdatajpa.library.dto;
 import com.springdatajpa.library.models.Person;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -23,8 +22,6 @@ public class PersonForm {
     @Email(message = "Email should be valid")
     private String email;
 
-    @Pattern(regexp = "[A-Z]\\w+, [A-Z]\\w+, \\d{6}",
-            message = "Your address should be in this format: Country, City, Postal Code (6 digits)")
     private String address;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)

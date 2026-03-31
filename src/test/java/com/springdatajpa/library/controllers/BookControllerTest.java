@@ -163,7 +163,7 @@ class BookControllerTest {
         mockMvc.perform(patch("/books/6/assign")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("personId", "9"))
-                .andExpect(redirectedUrl("/books/6"));
+                .andExpect(redirectedUrl("/books"));
         verify(bookService).assign(6, 9);
     }
 }

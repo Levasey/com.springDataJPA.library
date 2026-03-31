@@ -9,6 +9,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -44,6 +45,20 @@ public class GlobalExceptionHandler {
         log.debug("No static resource: {}", ex.getResourcePath());
         ModelAndView mv = new ModelAndView("error/404");
         mv.addObject("message", "Страница или файл не найдены.");
+        return mv;
+    }
+
+    /**
+     * Often means POST was sent where only PATCH/DELETE is mapped — for example if
+     * {@code spring.mvc.hiddenmethod.filter.enabled} is false and forms use {@code _method}.
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+    public ModelAndView handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        log.warn("HTTP method not supported: {}", ex.getMessage());
+        ModelAndView mv = new ModelAndView("error/bad-request");
+        mv.addObject("message",
+                "Этот адрес или способ запроса не поддерживается. Обновите страницу и повторите действие из формы на сайте.");
         return mv;
     }
 

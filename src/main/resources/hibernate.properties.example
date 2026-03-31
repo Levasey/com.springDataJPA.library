@@ -5,3 +5,4 @@ hibernate.connection.username=postgres
 hibernate.connection.password=your_password_here
 hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 hibernate.show_sql=true
+hibernate.hbm2ddl.auto=update

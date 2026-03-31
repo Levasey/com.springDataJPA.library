@@ -49,7 +49,7 @@ flowchart LR
 ## Требования
 
 - JDK 8+ (совместимо с версией Spring в проекте)
-- Maven 3.6+
+- Для **`make`** целей Maven подтягивается через **`./mvnw`** (отдельно ставить Maven не обязательно). При желании можно использовать системный Maven 3.6+ (`make MVN=mvn package`).
 - PostgreSQL с базой данных (по умолчанию имя БД — `library`, см. пример конфигурации ниже)
 - Сервер приложений с поддержкой Servlet API 4 (например, Apache Tomcat 9+) для деплоя **WAR**
 
@@ -73,10 +73,10 @@ flowchart LR
 
 3. Убедитесь, что в `hibernate.properties` указаны корректные `hibernate.connection.url`, `username`, при необходимости `password` (или задайте только `LIBRARY_DB_PASSWORD`), а также `hibernate.dialect` для PostgreSQL.
 
-Схему таблиц нужно подготовить самостоятельно (SQL-скрипт или миграции): в текущем конфиге JPA **нет** `hibernate.hbm2ddl.auto` — поведение «создать таблицы из сущностей» по умолчанию не включено.
+Схема БД синхронизируется с сущностями через **`hibernate.hbm2ddl.auto`** (в примере и в `SpringConfig` это значение читается из `hibernate.properties`). По умолчанию в репозитории задано **`update`**: Hibernate создаёт отсутствующие таблицы и добавляет новые колонки/ограничения, но не удаляет «лишние» объекты схемы. Для продакшена чаще выбирают **`validate`** или отключают авто-DDL и ведут схему через миграции.
 
 <details>
-<summary><strong>Пример DDL для PostgreSQL</strong> (раскрыть)</summary>
+<summary><strong>Пример DDL для PostgreSQL</strong> (если настраиваете схему вручную или для справки)</summary>
 
 ```sql
 CREATE TABLE person (
@@ -106,23 +106,23 @@ CREATE TABLE book (
 ## Сборка и тесты
 
 ```bash
-# Сборка WAR
-mvn clean package
+# Сборка WAR (Maven Wrapper из репозитория)
+./mvnw clean package
 
 # Только тесты
-mvn test
+./mvnw test
 ```
 
-Через **Makefile**:
+Через **Makefile** по умолчанию вызывается **`./mvnw`** (системный `mvn` не нужен). На Windows: `make MVN=mvnw.cmd package`.
 
 | Команда | Действие |
 |---------|----------|
 | `make package` | Сборка `target/com.springDataJPA.library.war` |
 | `make test` | Запуск тестов |
 | `make clean` | Очистка `target/` |
-| `make skip-tests` | Сборка без тестов |
+| `make skip-tests` | Сборка без тестов (-DskipTests) |
 
-После `mvn package` артефакт: **`target/com.springDataJPA.library.war`** — разверните его в Tomcat (или другом контейнере) и откройте приложение по контексту, заданному при деплое.
+После успешной сборки артефакт: **`target/com.springDataJPA.library.war`** — разверните его в Tomcat (или другом контейнере) и откройте приложение по контексту, заданному при деплое.
 
 ---
 

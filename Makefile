@@ -1,5 +1,6 @@
-# Maven WAR project — set MVN=mvnw.cmd on Windows if you add a wrapper
-MVN ?= mvn
+# Maven WAR project — wrapper по умолчанию (не нужен системный mvn).
+# Windows: make MVN=mvnw.cmd package
+MVN ?= ./mvnw
 
 .PHONY: default help clean compile test package verify install skip-tests \
 	run-package

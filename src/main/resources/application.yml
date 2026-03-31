@@ -19,6 +19,15 @@ spring:
       hibernate:
         format_sql: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
 logging:
   level:
     org.hibernate.SQL: ${SQL_LOG_LEVEL:WARN}

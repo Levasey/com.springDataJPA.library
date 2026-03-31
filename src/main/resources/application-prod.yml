@@ -1,0 +1,14 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    root: WARN
+    com.springdatajpa.library: INFO
+
+management:
+  endpoint:
+    health:
+      show-details: never

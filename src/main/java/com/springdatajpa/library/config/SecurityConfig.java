@@ -33,6 +33,8 @@ public class SecurityConfig {
                                 LibraryAccessDeniedHandler.FORBIDDEN_PAGE_PATH).permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico")
                         .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET, "/books/**", "/people/**").permitAll()
                         .requestMatchers("/books/**", "/people/**").hasRole("USER")
                         .anyRequest().authenticated())

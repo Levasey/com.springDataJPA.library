@@ -42,7 +42,7 @@
 ## Сборка и тесты
 
 ```bash
-./mvnw clean package    # WAR: target/com.springDataJPA.library.war
+./mvnw clean package    # JAR: target/com.springdatajpa.library.jar
 ./mvnw test
 ```
 
@@ -52,8 +52,15 @@
 
 ## Запуск
 
-- **Встроенный Tomcat (Executable WAR / Jar):** после добавления зависимости и настройки можно использовать `java -jar`; для классического **WAR** с внешним Tomcat разверните **`target/com.springDataJPA.library.war`** и задайте переменные окружения или `application-local.yml` на сервере.
-- Откройте **`http://localhost:8080/people`**, **`http://localhost:8080/books`** (порт по умолчанию у Spring Boot — **8080**).
+- **Исполняемый JAR:** после `./mvnw clean package` запуск:  
+  `java -jar target/com.springdatajpa.library.jar`  
+  Переменные БД (`SPRING_DATASOURCE_*` или `LIBRARY_DB_PASSWORD`) задайте в окружении или через профиль (см. ниже).
+- **Профиль `prod`:** сужает детализацию health-ответа и уровни логов (см. `application-prod.yml`):  
+  `--spring.profiles.active=prod`
+- **Actuator:** по HTTP открыты **`/actuator/health`** (GET без авторизации — для проб/load balancer) и **`/actuator/info`** (только для аутентифицированных пользователей вместе с остальными actuator-путями). При необходимости ограничьте доступ на уровне reverse proxy.
+- Откройте **`http://localhost:8080/people`**, **`http://localhost:8080/books`** (порт по умолчанию — **8080**).
+
+> Проект изначально учебный; для публичного сервиса дополнительно настраивают HTTPS, резервное копирование БД, централизованные логи и мониторинг на стороне инфраструктуры.
 
 ---
 
@@ -81,14 +88,15 @@
 | `/books` | Список; `?page=1&books_per_page=10&sort_by_year=true` |
 | `/books/search` | Поиск по названию или автору (`q=`); у каждой позиции — переход в карточку / правка |
 | `/books/new` | Новая книга |
+| `GET /actuator/health` | Проверка живости приложения (без входа) |
 
 ---
 
 ## Структура (выжимка)
 
 ```
-src/main/java/com/springDataJPA/library/
-├── LibraryApplication.java   # SpringBootServletInitializer для WAR
+src/main/java/com/springdatajpa/library/
+├── LibraryApplication.java
 ├── config/SecurityConfig.java
 ├── controllers/
 ├── services/
@@ -98,6 +106,7 @@ src/main/java/com/springDataJPA/library/
 
 src/main/resources/
 ├── application.yml
+├── application-prod.yml      # профиль prod: логи, health без деталей
 ├── application-test.yml      # H2, без Flyway — для @DataJpaTest
 ├── db/migration/             # Flyway
 └── templates/                # Thymeleaf

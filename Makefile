@@ -1,4 +1,4 @@
-# Maven WAR project — wrapper по умолчанию (не нужен системный mvn).
+# Maven (Spring Boot JAR) — wrapper по умолчанию (не нужен системный mvn).
 # Windows: make MVN=mvnw.cmd package
 MVN ?= ./mvnw
 
@@ -9,7 +9,7 @@ default: package
 
 help:
 	@echo "Targets:"
-	@echo "  make package       — build WAR (target/com.springDataJPA.library.war)"
+	@echo "  make package       — build JAR (target/com.springdatajpa.library.jar)"
 	@echo "  make compile       — compile sources"
 	@echo "  make test          — run unit tests"
 	@echo "  make verify        — package + integration checks (if any)"
@@ -41,4 +41,4 @@ skip-tests:
 
 # Show where the artifact ends up after package
 run-package: package
-	@echo "WAR: $$(pwd)/target/com.springDataJPA.library.war"
+	@echo "JAR: $$(pwd)/target/com.springdatajpa.library.jar"

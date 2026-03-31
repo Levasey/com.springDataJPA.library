@@ -13,7 +13,7 @@
 
   <groupId>com.springdatajpa.library</groupId>
   <artifactId>com.springdatajpa.library</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <packaging>jar</packaging>
   <name>Library</name>
   <description>Spring Boot 3, Spring Data JPA, Thymeleaf, PostgreSQL</description>
@@ -43,6 +43,10 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
     <dependency>
       <groupId>org.thymeleaf.extras</groupId>

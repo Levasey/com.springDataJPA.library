@@ -4,10 +4,9 @@
 <th:block th:fragment="main">
     <section class="panel" style="max-width:36rem; margin-top:0.5rem">
         <h1 class="page-title" style="margin-top:0">Добро пожаловать</h1>
-        <p class="muted" style="margin-top:0">Каталог книг и читателей доступен всем. Чтобы добавлять и изменять записи, войдите или создайте учётную запись.</p>
+        <p class="muted" style="margin-top:0">Каталог книг и читателей доступен всем. Чтобы добавлять и изменять записи, войдите. Учётные записи создаёт только библиотекарь.</p>
         <div class="actions" style="margin-top:1.5rem; flex-wrap:wrap">
             <a class="btn btn-primary" th:href="@{/login}">Войти</a>
-            <a class="btn btn-secondary" th:href="@{/register}">Регистрация</a>
             <a class="btn btn-secondary" th:href="@{/books}">Каталог книг</a>
         </div>
     </section>

@@ -26,7 +26,7 @@ public class LibraryUserDetailsService implements UserDetailsService {
                 .username(u.getUsername())
                 .password(u.getPassword())
                 .disabled(!u.isEnabled())
-                .roles("USER")
+                .roles(u.getRole().name())
                 .build();
     }
 }

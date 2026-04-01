@@ -9,10 +9,6 @@
         <p style="margin:0">Неверное имя пользователя или пароль. Попробуйте снова.</p>
     </div>
 
-    <div th:if="${param.registered}" class="panel" role="status" style="border-color: var(--success); margin-bottom:1rem">
-        <p style="margin:0">Регистрация прошла успешно. Войдите, используя новую учётную запись.</p>
-    </div>
-
     <form class="form-stack panel" style="max-width:22rem" th:action="@{/login}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
         <div class="field">
@@ -25,7 +21,6 @@
         </div>
         <div class="actions" style="margin-top:0">
             <button type="submit" class="btn btn-primary">Войти</button>
-            <a class="btn btn-secondary" th:href="@{/register}">Регистрация</a>
         </div>
     </form>
 

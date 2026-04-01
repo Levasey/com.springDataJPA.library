@@ -19,13 +19,22 @@ public class LibraryUser {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private UserRole role = UserRole.USER;
+
     public LibraryUser() {
     }
 
     public LibraryUser(String username, String password, boolean enabled) {
+        this(username, password, enabled, UserRole.USER);
+    }
+
+    public LibraryUser(String username, String password, boolean enabled, UserRole role) {
         this.username = username;
         this.password = password;
         this.enabled = enabled;
+        this.role = role;
     }
 
     public Long getId() {
@@ -58,5 +67,13 @@ public class LibraryUser {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 }

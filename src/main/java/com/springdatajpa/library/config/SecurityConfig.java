@@ -29,14 +29,16 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AccessDeniedHandler accessDeniedHandler) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/register", "/error",
+                        .requestMatchers("/", "/login", "/error",
                                 LibraryAccessDeniedHandler.FORBIDDEN_PAGE_PATH).permitAll()
+                        .requestMatchers("/register").hasRole("LIBRARIAN")
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/books/**", "/people/**").permitAll()
-                        .requestMatchers("/books/**", "/people/**").hasRole("USER")
+                        .requestMatchers("/books/**", "/people/**")
+                        .hasAnyRole("USER", "LIBRARIAN")
                         .anyRequest().authenticated())
                 .formLogin(login -> login
                         .loginPage("/login")

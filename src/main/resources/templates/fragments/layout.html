@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org" th:fragment="layout (pageTitle, main)">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout (pageTitle, main)">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -21,6 +22,8 @@
            th:attr="aria-current=${#strings.startsWith(reqUri, '/people') ? 'page' : null}">Читатели</a>
         <a th:href="@{/books/search}"
            th:attr="aria-current=${#strings.startsWith(reqUri, '/books/search') ? 'page' : null}">Поиск</a>
+        <a sec:authorize="hasRole('LIBRARIAN')" th:href="@{/register}"
+           th:attr="aria-current=${#strings.startsWith(reqUri, '/register') ? 'page' : null}">Новый пользователь</a>
     </nav>
 </header>
 <main id="main-content" class="container">

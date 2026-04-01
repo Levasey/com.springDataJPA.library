@@ -35,11 +35,16 @@ public class BookController {
     public String index(Model model, @RequestParam(value = "page", required = false) Integer page,
                         @RequestParam(value = "books_per_page", required = false) Integer booksPerPage,
                         @RequestParam(value = "sort_by_year", required = false) boolean sortByYear,
-                        @RequestParam(value = "sort_by_genre", required = false) boolean sortByGenre) {
-        Page<Book> booksPage = bookService.findForIndexPage(page, booksPerPage, sortByYear, sortByGenre);
+                        @RequestParam(value = "sort_by_genre", required = false) boolean sortByGenre,
+                        @RequestParam(value = "sort_by_title", required = false) boolean sortByTitle,
+                        @RequestParam(value = "sort_by_author", required = false) boolean sortByAuthor) {
+        Page<Book> booksPage = bookService.findForIndexPage(
+                page, booksPerPage, sortByYear, sortByGenre, sortByTitle, sortByAuthor);
         model.addAttribute("booksPage", booksPage);
         model.addAttribute("sortByYear", sortByYear);
         model.addAttribute("sortByGenre", sortByGenre);
+        model.addAttribute("sortByTitle", sortByTitle);
+        model.addAttribute("sortByAuthor", sortByAuthor);
         return "books/index";
     }
 

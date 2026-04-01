@@ -35,8 +35,9 @@ public class BookService {
         this.peopleRepository = peopleRepository;
     }
 
-    public List<Book> findAll(boolean sortByYear, boolean sortByGenre) {
-        Sort sort = indexSort(sortByYear, sortByGenre);
+    public List<Book> findAll(boolean sortByYear, boolean sortByGenre,
+                              boolean sortByTitle, boolean sortByAuthor) {
+        Sort sort = indexSort(sortByYear, sortByGenre, sortByTitle, sortByAuthor);
         if (sort.isUnsorted()) {
             return bookRepository.findAll();
         }
@@ -104,9 +105,10 @@ public class BookService {
      * Без параметров пагинации — одна «страница» со всеми книгами; иначе — страница Spring Data.
      */
     public Page<Book> findForIndexPage(Integer page, Integer booksPerPage,
-                                       boolean sortByYear, boolean sortByGenre) {
+                                       boolean sortByYear, boolean sortByGenre,
+                                       boolean sortByTitle, boolean sortByAuthor) {
         if (page == null && booksPerPage == null) {
-            Sort sort = indexSort(sortByYear, sortByGenre);
+            Sort sort = indexSort(sortByYear, sortByGenre, sortByTitle, sortByAuthor);
             List<Book> content = sort.isUnsorted()
                     ? bookRepository.findAll()
                     : bookRepository.findAll(sort);
@@ -123,28 +125,35 @@ public class BookService {
         if (size > MAX_PAGE_SIZE) {
             size = MAX_PAGE_SIZE;
         }
-        return findWithPagination(pageOneBased - 1, size, sortByYear, sortByGenre);
+        return findWithPagination(pageOneBased - 1, size, sortByYear, sortByGenre,
+                sortByTitle, sortByAuthor);
     }
 
     public Page<Book> findWithPagination(Integer page, Integer booksPerPage,
-                                         boolean sortByYear, boolean sortByGenre) {
-        Sort sort = indexSort(sortByYear, sortByGenre);
+                                         boolean sortByYear, boolean sortByGenre,
+                                         boolean sortByTitle, boolean sortByAuthor) {
+        Sort sort = indexSort(sortByYear, sortByGenre, sortByTitle, sortByAuthor);
         Pageable pageable = sort.isUnsorted()
                 ? PageRequest.of(page, booksPerPage)
                 : PageRequest.of(page, booksPerPage, sort);
         return bookRepository.findAll(pageable);
     }
 
-    private static Sort indexSort(boolean sortByYear, boolean sortByGenre) {
-        if (sortByYear && sortByGenre) {
-            return Sort.by("genre").and(Sort.by("yearPublished"));
+    private static Sort indexSort(boolean sortByYear, boolean sortByGenre,
+                                  boolean sortByTitle, boolean sortByAuthor) {
+        Sort sort = Sort.unsorted();
+        if (sortByTitle) {
+            sort = sort.and(Sort.by("title"));
         }
-        if (sortByYear) {
-            return Sort.by("yearPublished");
+        if (sortByAuthor) {
+            sort = sort.and(Sort.by("author"));
         }
         if (sortByGenre) {
-            return Sort.by("genre");
+            sort = sort.and(Sort.by("genre"));
         }
-        return Sort.unsorted();
+        if (sortByYear) {
+            sort = sort.and(Sort.by("yearPublished"));
+        }
+        return sort;
     }
 }

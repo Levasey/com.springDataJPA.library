@@ -6,6 +6,7 @@
     <h1 class="page-title" th:text="${book.getTitle()}">Название</h1>
     <div class="panel stack">
         <p class="muted" th:text="${book.getYearPublished()}">год</p>
+        <p><span class="muted">Жанр:</span> <span th:text="${book.getGenre().getDisplayName()}">жанр</span></p>
         <p><span class="muted">Автор:</span> <span th:text="${book.getAuthor()}">автор</span></p>
 
         <div th:if="${owner}">

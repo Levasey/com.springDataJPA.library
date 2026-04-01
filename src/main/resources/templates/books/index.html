@@ -7,7 +7,7 @@
     <ul class="card-list">
         <li th:each="book : ${booksPage.content}">
             <a th:href="@{/books/{bookId}(bookId=${book.getBookId()})}"
-               th:text="${book.getTitle() + ', ' + book.getYearPublished()}">книга</a>
+               th:text="${book.getTitle() + ', ' + book.getYearPublished() + ' · ' + book.getGenre().getDisplayName()}">книга</a>
         </li>
     </ul>
     <div class="pagination" th:if="${booksPage.totalPages > 1}">

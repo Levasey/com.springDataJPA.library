@@ -21,6 +21,13 @@
             <input type="text" th:field="*{yearPublished}" id="yearPublished" inputmode="numeric"/>
             <div class="field-error" th:if="${#fields.hasErrors('yearPublished')}" th:errors="*{yearPublished}">ошибка</div>
         </div>
+        <div class="field">
+            <label for="genre">Жанр</label>
+            <select th:field="*{genre}" id="genre">
+                <option th:each="g : ${genres}" th:value="${g}" th:text="${g.displayName}">жанр</option>
+            </select>
+            <div class="field-error" th:if="${#fields.hasErrors('genre')}" th:errors="*{genre}">ошибка</div>
+        </div>
         <div class="actions" style="margin-top:0">
             <input class="btn btn-primary" type="submit" value="Сохранить"/>
             <a class="btn btn-secondary" th:href="@{/books/{bookId}(bookId=${bookId})}">Отмена</a>

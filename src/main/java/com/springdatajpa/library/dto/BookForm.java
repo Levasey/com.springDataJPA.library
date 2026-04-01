@@ -1,8 +1,10 @@
 package com.springdatajpa.library.dto;
 
 import com.springdatajpa.library.models.Book;
+import com.springdatajpa.library.models.Genre;
 import com.springdatajpa.library.validation.YearPublished;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class BookForm {
@@ -18,22 +20,27 @@ public class BookForm {
     @YearPublished
     private int yearPublished;
 
+    @NotNull(message = "Genre is required")
+    private Genre genre = Genre.OTHER;
+
     public static BookForm from(Book book) {
         BookForm form = new BookForm();
         form.setTitle(book.getTitle());
         form.setAuthor(book.getAuthor());
         form.setYearPublished(book.getYearPublished());
+        form.setGenre(book.getGenre());
         return form;
     }
 
     public Book toNewBook() {
-        return new Book(title, author, yearPublished);
+        return new Book(title, author, yearPublished, genre);
     }
 
     public void applyTo(Book book) {
         book.setTitle(title);
         book.setAuthor(author);
         book.setYearPublished(yearPublished);
+        book.setGenre(genre);
     }
 
     public String getTitle() {
@@ -58,5 +65,13 @@ public class BookForm {
 
     public void setYearPublished(int yearPublished) {
         this.yearPublished = yearPublished;
+    }
+
+    public Genre getGenre() {
+        return genre;
+    }
+
+    public void setGenre(Genre genre) {
+        this.genre = genre;
     }
 }

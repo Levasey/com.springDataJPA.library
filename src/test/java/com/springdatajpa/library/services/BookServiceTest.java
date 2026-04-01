@@ -4,6 +4,7 @@ import com.springdatajpa.library.dto.BookForm;
 import com.springdatajpa.library.exception.BadRequestException;
 import com.springdatajpa.library.exception.ResourceNotFoundException;
 import com.springdatajpa.library.models.Book;
+import com.springdatajpa.library.models.Genre;
 import com.springdatajpa.library.models.Person;
 import com.springdatajpa.library.repositories.BookRepository;
 import com.springdatajpa.library.repositories.PeopleRepository;
@@ -70,12 +71,14 @@ class BookServiceTest {
         form.setTitle("T");
         form.setAuthor("A");
         form.setYearPublished(2000);
+        form.setGenre(Genre.POETRY);
         ArgumentCaptor<Book> captor = ArgumentCaptor.forClass(Book.class);
         bookService.createBook(form);
         verify(bookRepository).save(captor.capture());
         assertEquals("T", captor.getValue().getTitle());
         assertEquals("A", captor.getValue().getAuthor());
         assertEquals(2000, captor.getValue().getYearPublished());
+        assertEquals(Genre.POETRY, captor.getValue().getGenre());
     }
 
     @Test
@@ -90,11 +93,13 @@ class BookServiceTest {
         updated.setTitle("New");
         updated.setAuthor("Auth2");
         updated.setYearPublished(2001);
+        updated.setGenre(Genre.HISTORY);
         bookService.update(3, updated);
 
         assertEquals("New", existing.getTitle());
         assertEquals("Auth2", existing.getAuthor());
         assertEquals(2001, existing.getYearPublished());
+        assertEquals(Genre.HISTORY, existing.getGenre());
         assertSame(owner, existing.getOwner());
         verify(bookRepository, never()).save(any());
     }

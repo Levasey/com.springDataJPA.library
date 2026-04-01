@@ -2,6 +2,7 @@ package com.springdatajpa.library.controllers;
 
 import com.springdatajpa.library.dto.BookForm;
 import com.springdatajpa.library.models.Book;
+import com.springdatajpa.library.models.Genre;
 import com.springdatajpa.library.models.Person;
 import com.springdatajpa.library.services.BookService;
 import com.springdatajpa.library.services.PeopleService;
@@ -51,14 +52,16 @@ public class BookController {
     }
 
     @GetMapping("/new")
-    public String newBook(@ModelAttribute("bookForm") BookForm bookForm) {
+    public String newBook(@ModelAttribute("bookForm") BookForm bookForm, Model model) {
+        model.addAttribute("genres", Genre.values());
         return "books/new";
     }
 
     @PostMapping()
     public String create(@ModelAttribute("bookForm") @Valid BookForm bookForm,
-                         BindingResult bindingResult) {
+                         BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
+            model.addAttribute("genres", Genre.values());
             return "books/new";
         }
 
@@ -96,6 +99,7 @@ public class BookController {
     public String edit(Model model, @PathVariable("bookId") int id) {
         model.addAttribute("bookForm", BookForm.from(bookService.findOne(id)));
         model.addAttribute("bookId", id);
+        model.addAttribute("genres", Genre.values());
         return "books/edit";
     }
 
@@ -104,6 +108,7 @@ public class BookController {
                          @PathVariable("bookId") int id, Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("bookId", id);
+            model.addAttribute("genres", Genre.values());
             return "books/edit";
         }
 

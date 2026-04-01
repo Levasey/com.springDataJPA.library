@@ -21,7 +21,8 @@
                 <a th:href="@{/books/{bookId}(bookId=${book.getBookId()})}"
                    class="result-title-link"
                    th:text="${book.getTitle()}">название</a>
-                <span class="muted" th:text="| · ${book.getAuthor()} · ${book.getYearPublished()}|"></span>
+                <span class="muted"
+                      th:text="| · ${book.getGenre().getDisplayName()} · ${book.getAuthor()} · ${book.getYearPublished()}|"></span>
             </p>
             <p sec:authorize="hasRole('LIBRARIAN')" th:if="${book.getOwner() != null}" class="status-busy"
                style="margin:0;font-size:0.92rem">

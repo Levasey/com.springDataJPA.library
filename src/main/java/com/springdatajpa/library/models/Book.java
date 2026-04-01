@@ -3,6 +3,7 @@ package com.springdatajpa.library.models;
 import com.springdatajpa.library.validation.YearPublished;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
@@ -30,6 +31,11 @@ public class Book {
     @Column(name = "year_published")
     private int yearPublished;
 
+    @NotNull(message = "Genre is required")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "genre", nullable = false, length = 32)
+    private Genre genre = Genre.OTHER;
+
     @Column(name = "taken_at")
     private LocalDateTime takenAt;
 
@@ -44,9 +50,14 @@ public class Book {
     }
 
     public Book(String title, String author, int yearPublished) {
+        this(title, author, yearPublished, Genre.OTHER);
+    }
+
+    public Book(String title, String author, int yearPublished, Genre genre) {
         this.title = title;
         this.author = author;
         this.yearPublished = yearPublished;
+        this.genre = genre;
     }
 
     public boolean isExpired() {
@@ -103,5 +114,13 @@ public class Book {
 
     public void setYearPublished(int yearPublished) {
         this.yearPublished = yearPublished;
+    }
+
+    public Genre getGenre() {
+        return genre;
+    }
+
+    public void setGenre(Genre genre) {
+        this.genre = genre;
     }
 }

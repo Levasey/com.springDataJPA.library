@@ -100,7 +100,8 @@ class BookControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "Title")
                         .param("author", "Author")
-                        .param("yearPublished", "2000"))
+                        .param("yearPublished", "2000")
+                        .param("genre", "FICTION"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/books"));
         verify(bookService).createBook(any(BookForm.class));
@@ -112,7 +113,8 @@ class BookControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "x")
                         .param("author", "A")
-                        .param("yearPublished", "1499"))
+                        .param("yearPublished", "1499")
+                        .param("genre", "OTHER"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("books/new"));
     }
@@ -159,7 +161,8 @@ class BookControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", "T2")
                         .param("author", "A2")
-                        .param("yearPublished", "2001"))
+                        .param("yearPublished", "2001")
+                        .param("genre", "DETECTIVE"))
                 .andExpect(redirectedUrl("/books"));
         verify(bookService).update(eq(3), any(BookForm.class));
     }

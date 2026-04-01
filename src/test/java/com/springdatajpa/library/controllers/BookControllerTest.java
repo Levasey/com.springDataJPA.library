@@ -91,6 +91,38 @@ class BookControllerTest {
     }
 
     @Test
+    void index_multipleSortFlags_delegatesToService() throws Exception {
+        when(bookService.findForIndexPage(null, null, true, false, false, true, false, false))
+                .thenReturn(new PageImpl<>(List.of()));
+        mockMvc.perform(get("/books")
+                        .param("sort_by_year", "true")
+                        .param("sort_by_author", "true"))
+                .andExpect(status().isOk());
+        verify(bookService).findForIndexPage(null, null, true, false, false, true, false, false);
+    }
+
+    @Test
+    void index_availabilityPresetFree_delegatesToService() throws Exception {
+        when(bookService.findForIndexPage(null, null, false, false, false, false, true, false))
+                .thenReturn(new PageImpl<>(List.of()));
+        mockMvc.perform(get("/books").param("availability_preset", "free"))
+                .andExpect(status().isOk());
+        verify(bookService).findForIndexPage(null, null, false, false, false, false, true, false);
+    }
+
+    @Test
+    void index_availabilityPresetOverridesLegacyParams() throws Exception {
+        when(bookService.findForIndexPage(null, null, false, false, false, false, false, false))
+                .thenReturn(new PageImpl<>(List.of()));
+        mockMvc.perform(get("/books")
+                        .param("availability_preset", "all")
+                        .param("sort_by_availability", "true")
+                        .param("availability_issued_first", "true"))
+                .andExpect(status().isOk());
+        verify(bookService).findForIndexPage(null, null, false, false, false, false, false, false);
+    }
+
+    @Test
     void index_sortByAvailabilityIssuedFirst_delegatesToService() throws Exception {
         when(bookService.findForIndexPage(null, null, false, false, false, false, true, true))
                 .thenReturn(new PageImpl<>(List.of()));

@@ -4,35 +4,29 @@
 <body>
 <th:block th:fragment="main">
     <h1 class="page-title">Книги</h1>
-    <p class="sort-toolbar">
-        Сортировка:
-        <a th:href="@{/books(page=${booksPage.number + 1}, books_per_page=${booksPage.size}, sort_by_year=false, sort_by_genre=false, sort_by_title=false, sort_by_author=false, sort_by_availability=false, availability_issued_first=false)}"
-           th:classappend="${!sortByYear and !sortByGenre and !sortByTitle and !sortByAuthor and !sortByAvailability} ? ' sort-active' : ''">по умолчанию</a>
-        ·
-        <a th:href="@{/books(page=${booksPage.number + 1}, books_per_page=${booksPage.size}, sort_by_year=true, sort_by_genre=false, sort_by_title=false, sort_by_author=false, sort_by_availability=false, availability_issued_first=false)}"
-           th:classappend="${sortByYear and !sortByGenre and !sortByTitle and !sortByAuthor and !sortByAvailability} ? ' sort-active' : ''">по году</a>
-        ·
-        <a th:href="@{/books(page=${booksPage.number + 1}, books_per_page=${booksPage.size}, sort_by_year=false, sort_by_genre=true, sort_by_title=false, sort_by_author=false, sort_by_availability=false, availability_issued_first=false)}"
-           th:classappend="${sortByGenre and !sortByYear and !sortByTitle and !sortByAuthor and !sortByAvailability} ? ' sort-active' : ''">по жанру</a>
-        ·
-        <a th:href="@{/books(page=${booksPage.number + 1}, books_per_page=${booksPage.size}, sort_by_year=true, sort_by_genre=true, sort_by_title=false, sort_by_author=false, sort_by_availability=false, availability_issued_first=false)}"
-           th:classappend="${sortByYear and sortByGenre and !sortByTitle and !sortByAuthor and !sortByAvailability} ? ' sort-active' : ''">жанр и год</a>
-        ·
-        <a th:href="@{/books(page=${booksPage.number + 1}, books_per_page=${booksPage.size}, sort_by_year=false, sort_by_genre=false, sort_by_title=true, sort_by_author=false, sort_by_availability=false, availability_issued_first=false)}"
-           th:classappend="${sortByTitle and !sortByAuthor and !sortByYear and !sortByGenre and !sortByAvailability} ? ' sort-active' : ''">по названию</a>
-        ·
-        <a th:href="@{/books(page=${booksPage.number + 1}, books_per_page=${booksPage.size}, sort_by_year=false, sort_by_genre=false, sort_by_title=false, sort_by_author=true, sort_by_availability=false, availability_issued_first=false)}"
-           th:classappend="${sortByAuthor and !sortByTitle and !sortByYear and !sortByGenre and !sortByAvailability} ? ' sort-active' : ''">по автору</a>
-        ·
-        <a th:href="@{/books(page=${booksPage.number + 1}, books_per_page=${booksPage.size}, sort_by_year=false, sort_by_genre=false, sort_by_title=true, sort_by_author=true, sort_by_availability=false, availability_issued_first=false)}"
-           th:classappend="${sortByTitle and sortByAuthor and !sortByYear and !sortByGenre and !sortByAvailability} ? ' sort-active' : ''">название и автор</a>
-        ·
-        <a th:href="@{/books(page=${booksPage.number + 1}, books_per_page=${booksPage.size}, sort_by_year=false, sort_by_genre=false, sort_by_title=false, sort_by_author=false, sort_by_availability=true, availability_issued_first=false)}"
-           th:classappend="${sortByAvailability and !availabilityIssuedFirst and !sortByYear and !sortByGenre and !sortByTitle and !sortByAuthor} ? ' sort-active' : ''">только свободные</a>
-        ·
-        <a th:href="@{/books(page=${booksPage.number + 1}, books_per_page=${booksPage.size}, sort_by_year=false, sort_by_genre=false, sort_by_title=false, sort_by_author=false, sort_by_availability=true, availability_issued_first=true)}"
-           th:classappend="${sortByAvailability and availabilityIssuedFirst and !sortByYear and !sortByGenre and !sortByTitle and !sortByAuthor} ? ' sort-active' : ''">только выданные</a>
-    </p>
+    <form class="sort-toolbar" method="get" th:action="@{/books}">
+        <input type="hidden" name="page" th:value="${booksPage.number + 1}"/>
+        <input type="hidden" name="books_per_page" th:value="${booksPage.size}"/>
+        <div class="sort-toolbar__row">
+            <span class="sort-toolbar__label">Сортировка (можно выбрать несколько):</span>
+            <label class="sort-toolbar__check"><input type="checkbox" name="sort_by_year" value="true" th:checked="${sortByYear}"/> по году</label>
+            <label class="sort-toolbar__check"><input type="checkbox" name="sort_by_genre" value="true" th:checked="${sortByGenre}"/> по жанру</label>
+            <label class="sort-toolbar__check"><input type="checkbox" name="sort_by_title" value="true" th:checked="${sortByTitle}"/> по названию</label>
+            <label class="sort-toolbar__check"><input type="checkbox" name="sort_by_author" value="true" th:checked="${sortByAuthor}"/> по автору</label>
+        </div>
+        <div class="sort-toolbar__row">
+            <label class="sort-toolbar__select-wrap">
+                Книги:
+                <select name="availability_preset">
+                    <option value="all" th:selected="${availabilityPreset == 'all'}">все</option>
+                    <option value="free" th:selected="${availabilityPreset == 'free'}">только свободные</option>
+                    <option value="issued" th:selected="${availabilityPreset == 'issued'}">только выданные</option>
+                </select>
+            </label>
+            <button type="submit" class="btn btn-primary sort-toolbar__submit">Применить</button>
+            <a class="sort-toolbar__reset" th:href="@{/books}">Сбросить</a>
+        </div>
+    </form>
     <ul class="card-list">
         <li th:each="book : ${booksPage.content}">
             <a th:href="@{/books/{bookId}(bookId=${book.getBookId()})}"
@@ -43,10 +37,10 @@
         <span th:text="|Страница ${booksPage.number + 1} из ${booksPage.totalPages} · всего ${booksPage.totalElements}|">страница</span>
         <span>
             <a th:if="${booksPage.hasPrevious()}"
-               th:href="@{/books(page=${booksPage.number}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear}, sort_by_genre=${sortByGenre}, sort_by_title=${sortByTitle}, sort_by_author=${sortByAuthor}, sort_by_availability=${sortByAvailability}, availability_issued_first=${availabilityIssuedFirst})}">← Назад</a>
+               th:href="@{/books(page=${booksPage.number}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear}, sort_by_genre=${sortByGenre}, sort_by_title=${sortByTitle}, sort_by_author=${sortByAuthor}, availability_preset=${availabilityPreset})}">← Назад</a>
             <span th:if="${booksPage.hasPrevious() and booksPage.hasNext()}"> · </span>
             <a th:if="${booksPage.hasNext()}"
-               th:href="@{/books(page=${booksPage.number + 2}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear}, sort_by_genre=${sortByGenre}, sort_by_title=${sortByTitle}, sort_by_author=${sortByAuthor}, sort_by_availability=${sortByAvailability}, availability_issued_first=${availabilityIssuedFirst})}">Вперёд →</a>
+               th:href="@{/books(page=${booksPage.number + 2}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear}, sort_by_genre=${sortByGenre}, sort_by_title=${sortByTitle}, sort_by_author=${sortByAuthor}, availability_preset=${availabilityPreset})}">Вперёд →</a>
         </span>
     </div>
     <div class="actions" sec:authorize="hasRole('LIBRARIAN')">

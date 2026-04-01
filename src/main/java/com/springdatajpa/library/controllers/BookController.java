@@ -38,8 +38,22 @@ public class BookController {
                         @RequestParam(value = "sort_by_genre", required = false) boolean sortByGenre,
                         @RequestParam(value = "sort_by_title", required = false) boolean sortByTitle,
                         @RequestParam(value = "sort_by_author", required = false) boolean sortByAuthor,
-                        @RequestParam(value = "sort_by_availability", required = false) boolean sortByAvailability,
-                        @RequestParam(value = "availability_issued_first", required = false) boolean availabilityIssuedFirst) {
+                        @RequestParam(value = "availability_preset", required = false) String availabilityPresetParam,
+                        @RequestParam(value = "sort_by_availability", required = false, defaultValue = "false") boolean sortByAvailabilityLegacy,
+                        @RequestParam(value = "availability_issued_first", required = false, defaultValue = "false") boolean availabilityIssuedFirstLegacy) {
+        boolean sortByAvailability;
+        boolean availabilityIssuedFirst;
+        if (StringUtils.hasText(availabilityPresetParam)) {
+            sortByAvailability = switch (availabilityPresetParam) {
+                case "free", "issued" -> true;
+                default -> false;
+            };
+            availabilityIssuedFirst = "issued".equals(availabilityPresetParam);
+        } else {
+            sortByAvailability = sortByAvailabilityLegacy;
+            availabilityIssuedFirst = availabilityIssuedFirstLegacy;
+        }
+
         Page<Book> booksPage = bookService.findForIndexPage(
                 page, booksPerPage, sortByYear, sortByGenre, sortByTitle, sortByAuthor,
                 sortByAvailability, availabilityIssuedFirst);
@@ -50,6 +64,9 @@ public class BookController {
         model.addAttribute("sortByAuthor", sortByAuthor);
         model.addAttribute("sortByAvailability", sortByAvailability);
         model.addAttribute("availabilityIssuedFirst", availabilityIssuedFirst);
+        model.addAttribute("availabilityPreset", sortByAvailability
+                ? (availabilityIssuedFirst ? "issued" : "free")
+                : "all");
         return "books/index";
     }
 

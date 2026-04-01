@@ -18,12 +18,16 @@
     <nav class="nav-links" aria-label="Основная навигация">
         <a th:href="@{/books}"
            th:attr="aria-current=${#strings.startsWith(reqUri, '/books') and not #strings.startsWith(reqUri, '/books/search') ? 'page' : null}">Книги</a>
-        <a th:href="@{/people}"
+        <a sec:authorize="hasRole('LIBRARIAN')" th:href="@{/people}"
            th:attr="aria-current=${#strings.startsWith(reqUri, '/people') ? 'page' : null}">Читатели</a>
         <a th:href="@{/books/search}"
            th:attr="aria-current=${#strings.startsWith(reqUri, '/books/search') ? 'page' : null}">Поиск</a>
         <a sec:authorize="hasRole('LIBRARIAN')" th:href="@{/register}"
            th:attr="aria-current=${#strings.startsWith(reqUri, '/register') ? 'page' : null}">Новый пользователь</a>
+        <form sec:authorize="hasAnyRole('USER','LIBRARIAN')" class="nav-logout" th:action="@{/logout}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="nav-logout-btn">Выйти</button>
+        </form>
     </nav>
 </header>
 <main id="main-content" class="container">

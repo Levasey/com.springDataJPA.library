@@ -110,6 +110,30 @@ body {
   border-bottom-color: var(--accent);
 }
 
+.nav-links .nav-logout {
+  display: inline-flex;
+  margin: 0;
+  align-items: center;
+}
+
+.nav-links .nav-logout-btn {
+  margin: 0;
+  padding: 0.35rem 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.nav-links .nav-logout-btn:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
 main.container {
   width: 100%;
   max-width: var(--max-width);

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('Книги', ~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout('Книги', ~{::main})}">
 <body>
 <th:block th:fragment="main">
     <h1 class="page-title">Книги</h1>
@@ -19,7 +20,7 @@
                th:href="@{/books(page=${booksPage.number + 2}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear})}">Вперёд →</a>
         </span>
     </div>
-    <div class="actions">
+    <div class="actions" sec:authorize="hasRole('LIBRARIAN')">
         <a class="btn btn-primary" th:href="@{/books/new}">Добавить книгу</a>
     </div>
 </th:block>

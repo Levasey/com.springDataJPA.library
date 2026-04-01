@@ -3,10 +3,14 @@
 <body>
 <th:block th:fragment="main">
     <h1 class="page-title">Вход</h1>
-    <p class="muted" style="margin-top:0">Для изменения каталога книг и читателей нужна авторизация.</p>
+    <p class="muted" style="margin-top:0">Пользователь после входа видит книги и поиск. Раздел «Читатели» и работа с выдачей — у библиотекаря.</p>
 
     <div th:if="${param.error}" class="panel" role="alert" style="border-color: var(--color-danger, #c00); margin-bottom:1rem">
         <p style="margin:0">Неверное имя пользователя или пароль. Попробуйте снова.</p>
+    </div>
+
+    <div th:if="${param.logout}" class="panel" role="status" style="border-color: var(--success); margin-bottom:1rem">
+        <p style="margin:0">Вы вышли из учётной записи.</p>
     </div>
 
     <form class="form-stack panel" style="max-width:22rem" th:action="@{/login}" method="post">
@@ -23,8 +27,6 @@
             <button type="submit" class="btn btn-primary">Войти</button>
         </div>
     </form>
-
-    <p class="muted" style="margin-top:1.25rem"><a th:href="@{/books}">Перейти к каталогу без входа</a></p>
 </th:block>
 </body>
 </html>

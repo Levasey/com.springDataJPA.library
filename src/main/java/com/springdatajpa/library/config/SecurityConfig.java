@@ -29,20 +29,31 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AccessDeniedHandler accessDeniedHandler) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/error",
+                        .requestMatchers("/", "/login", "/logout", "/error",
                                 LibraryAccessDeniedHandler.FORBIDDEN_PAGE_PATH).permitAll()
                         .requestMatchers("/register").hasRole("LIBRARIAN")
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**")
                         .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/books/**", "/people/**").permitAll()
-                        .requestMatchers("/books/**", "/people/**")
-                        .hasAnyRole("USER", "LIBRARIAN")
+                        .requestMatchers("/people/**").hasRole("LIBRARIAN")
+                        .requestMatchers(HttpMethod.GET, "/books/search").hasAnyRole("USER", "LIBRARIAN")
+                        .requestMatchers(HttpMethod.GET, "/books/new").hasRole("LIBRARIAN")
+                        .requestMatchers(HttpMethod.GET, "/books/*/edit").hasRole("LIBRARIAN")
+                        .requestMatchers(HttpMethod.GET, "/books").hasAnyRole("USER", "LIBRARIAN")
+                        .requestMatchers(HttpMethod.GET, "/books/**").hasAnyRole("USER", "LIBRARIAN")
+                        .requestMatchers(HttpMethod.POST, "/books").hasRole("LIBRARIAN")
+                        .requestMatchers(HttpMethod.PATCH, "/books/**").hasRole("LIBRARIAN")
+                        .requestMatchers(HttpMethod.DELETE, "/books/**").hasRole("LIBRARIAN")
                         .anyRequest().authenticated())
                 .formLogin(login -> login
                         .loginPage("/login")
                         .defaultSuccessUrl("/books", true))
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID"))
                 .exceptionHandling(ex -> ex.accessDeniedHandler(accessDeniedHandler))
                 .csrf(Customizer.withDefaults());
         return http.build();

@@ -14,6 +14,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -21,6 +24,7 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -39,6 +43,7 @@ class BookControllerTest {
 
     @BeforeEach
     void setUp() throws Exception {
+        SecurityContextHolder.clearContext();
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.setMessageInterpolator(new ParameterMessageInterpolator());
         validator.afterPropertiesSet();
@@ -124,7 +129,22 @@ class BookControllerTest {
     }
 
     @Test
-    void show_withoutOwner_loadsPeople() throws Exception {
+    void show_withoutOwner_withoutLibrarianRole_doesNotLoadPeople() throws Exception {
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(
+                        "u", null, AuthorityUtils.createAuthorityList("ROLE_USER")));
+        Book book = new Book("T", "A", 2000);
+        when(bookService.findOne(2)).thenReturn(book);
+        mockMvc.perform(get("/books/2"))
+                .andExpect(status().isOk());
+        verify(peopleService, never()).findAll();
+    }
+
+    @Test
+    void show_withoutOwner_librarianLoadsPeople() throws Exception {
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(
+                        "lib", null, AuthorityUtils.createAuthorityList("ROLE_LIBRARIAN")));
         Book book = new Book("T", "A", 2000);
         when(bookService.findOne(2)).thenReturn(book);
         when(peopleService.findAll()).thenReturn(List.of());

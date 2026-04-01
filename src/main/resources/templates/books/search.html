@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('Поиск книг', ~{::main})}">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout('Поиск книг', ~{::main})}">
 <body>
 <th:block th:fragment="main">
     <h1 class="page-title">Поиск книг</h1>
@@ -22,13 +23,17 @@
                    th:text="${book.getTitle()}">название</a>
                 <span class="muted" th:text="| · ${book.getAuthor()} · ${book.getYearPublished()}|"></span>
             </p>
-            <p th:if="${book.getOwner() != null}" class="status-busy" style="margin:0;font-size:0.92rem">
+            <p sec:authorize="hasRole('LIBRARIAN')" th:if="${book.getOwner() != null}" class="status-busy"
+               style="margin:0;font-size:0.92rem">
                 У читателя: <span th:text="${book.getOwner().getSurname() + ' ' + book.getOwner().getName()}"></span>
             </p>
+            <p sec:authorize="!hasRole('LIBRARIAN')" th:if="${book.getOwner() != null}" class="status-busy"
+               style="margin:0;font-size:0.92rem">Занята</p>
             <p th:if="${book.getOwner() == null}" class="status-free" style="margin:0;font-size:0.92rem">Свободна</p>
             <div class="actions" style="margin-top:0.5rem">
                 <a class="btn btn-secondary" th:href="@{/books/{bookId}(bookId=${book.getBookId()})}">Карточка</a>
-                <a class="btn btn-primary" th:href="@{/books/{bookId}/edit(bookId=${book.getBookId()})}">Редактировать</a>
+                <a sec:authorize="hasRole('LIBRARIAN')" class="btn btn-primary"
+                   th:href="@{/books/{bookId}/edit(bookId=${book.getBookId()})}">Редактировать</a>
             </div>
         </article>
     </div>

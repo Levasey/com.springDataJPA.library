@@ -8,6 +8,9 @@ import com.springdatajpa.library.services.PeopleService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -70,10 +73,23 @@ public class BookController {
         Person owner = book.getOwner();
         if (owner != null) {
             model.addAttribute("owner", owner);
-        } else {
+        } else if (isLibrarian()) {
             model.addAttribute("people", peopleService.findAll());
         }
         return "books/show";
+    }
+
+    private static boolean isLibrarian() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
+        }
+        for (GrantedAuthority a : authentication.getAuthorities()) {
+            if ("ROLE_LIBRARIAN".equals(a.getAuthority())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @GetMapping("/{bookId}/edit")

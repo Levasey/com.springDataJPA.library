@@ -37,14 +37,19 @@ public class BookController {
                         @RequestParam(value = "sort_by_year", required = false) boolean sortByYear,
                         @RequestParam(value = "sort_by_genre", required = false) boolean sortByGenre,
                         @RequestParam(value = "sort_by_title", required = false) boolean sortByTitle,
-                        @RequestParam(value = "sort_by_author", required = false) boolean sortByAuthor) {
+                        @RequestParam(value = "sort_by_author", required = false) boolean sortByAuthor,
+                        @RequestParam(value = "sort_by_availability", required = false) boolean sortByAvailability,
+                        @RequestParam(value = "availability_issued_first", required = false) boolean availabilityIssuedFirst) {
         Page<Book> booksPage = bookService.findForIndexPage(
-                page, booksPerPage, sortByYear, sortByGenre, sortByTitle, sortByAuthor);
+                page, booksPerPage, sortByYear, sortByGenre, sortByTitle, sortByAuthor,
+                sortByAvailability, availabilityIssuedFirst);
         model.addAttribute("booksPage", booksPage);
         model.addAttribute("sortByYear", sortByYear);
         model.addAttribute("sortByGenre", sortByGenre);
         model.addAttribute("sortByTitle", sortByTitle);
         model.addAttribute("sortByAuthor", sortByAuthor);
+        model.addAttribute("sortByAvailability", sortByAvailability);
+        model.addAttribute("availabilityIssuedFirst", availabilityIssuedFirst);
         return "books/index";
     }
 

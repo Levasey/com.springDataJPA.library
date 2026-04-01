@@ -55,43 +55,57 @@ class BookControllerTest {
 
     @Test
     void index_allBooks() throws Exception {
-        when(bookService.findForIndexPage(null, null, false, false, false, false)).thenReturn(new PageImpl<>(List.of()));
+        when(bookService.findForIndexPage(null, null, false, false, false, false, false, false))
+                .thenReturn(new PageImpl<>(List.of()));
         mockMvc.perform(get("/books"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("books/index"));
-        verify(bookService).findForIndexPage(null, null, false, false, false, false);
+        verify(bookService).findForIndexPage(null, null, false, false, false, false, false, false);
     }
 
     @Test
     void index_withPagination_delegatesToService() throws Exception {
-        when(bookService.findForIndexPage(1, 10, true, false, false, false)).thenReturn(new PageImpl<>(List.of()));
+        when(bookService.findForIndexPage(1, 10, true, false, false, false, false, false))
+                .thenReturn(new PageImpl<>(List.of()));
         mockMvc.perform(get("/books").param("page", "1").param("books_per_page", "10").param("sort_by_year", "true"))
                 .andExpect(status().isOk());
-        verify(bookService).findForIndexPage(1, 10, true, false, false, false);
+        verify(bookService).findForIndexPage(1, 10, true, false, false, false, false, false);
     }
 
     @Test
     void index_sortByGenre_delegatesToService() throws Exception {
-        when(bookService.findForIndexPage(null, null, false, true, false, false)).thenReturn(new PageImpl<>(List.of()));
+        when(bookService.findForIndexPage(null, null, false, true, false, false, false, false))
+                .thenReturn(new PageImpl<>(List.of()));
         mockMvc.perform(get("/books").param("sort_by_genre", "true"))
                 .andExpect(status().isOk());
-        verify(bookService).findForIndexPage(null, null, false, true, false, false);
+        verify(bookService).findForIndexPage(null, null, false, true, false, false, false, false);
     }
 
     @Test
     void index_sortByTitle_delegatesToService() throws Exception {
-        when(bookService.findForIndexPage(null, null, false, false, true, false)).thenReturn(new PageImpl<>(List.of()));
+        when(bookService.findForIndexPage(null, null, false, false, true, false, false, false))
+                .thenReturn(new PageImpl<>(List.of()));
         mockMvc.perform(get("/books").param("sort_by_title", "true"))
                 .andExpect(status().isOk());
-        verify(bookService).findForIndexPage(null, null, false, false, true, false);
+        verify(bookService).findForIndexPage(null, null, false, false, true, false, false, false);
+    }
+
+    @Test
+    void index_sortByAvailabilityIssuedFirst_delegatesToService() throws Exception {
+        when(bookService.findForIndexPage(null, null, false, false, false, false, true, true))
+                .thenReturn(new PageImpl<>(List.of()));
+        mockMvc.perform(get("/books").param("sort_by_availability", "true").param("availability_issued_first", "true"))
+                .andExpect(status().isOk());
+        verify(bookService).findForIndexPage(null, null, false, false, false, false, true, true);
     }
 
     @Test
     void index_withPagination_pageZeroClampedToFirstPage() throws Exception {
-        when(bookService.findForIndexPage(0, 10, true, false, false, false)).thenReturn(new PageImpl<>(List.of()));
+        when(bookService.findForIndexPage(0, 10, true, false, false, false, false, false))
+                .thenReturn(new PageImpl<>(List.of()));
         mockMvc.perform(get("/books").param("page", "0").param("books_per_page", "10").param("sort_by_year", "true"))
                 .andExpect(status().isOk());
-        verify(bookService).findForIndexPage(0, 10, true, false, false, false);
+        verify(bookService).findForIndexPage(0, 10, true, false, false, false, false, false);
     }
 
     @Test

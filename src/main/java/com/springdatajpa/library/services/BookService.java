@@ -36,12 +36,22 @@ public class BookService {
     }
 
     public List<Book> findAll(boolean sortByYear, boolean sortByGenre,
-                              boolean sortByTitle, boolean sortByAuthor) {
-        Sort sort = indexSort(sortByYear, sortByGenre, sortByTitle, sortByAuthor);
-        if (sort.isUnsorted()) {
+                              boolean sortByTitle, boolean sortByAuthor,
+                              boolean sortByAvailability, boolean availabilityIssuedFirst) {
+        Sort secondary = secondaryIndexSort(sortByYear, sortByGenre, sortByTitle, sortByAuthor);
+        if (sortByAvailability) {
+            if (availabilityIssuedFirst) {
+                return bookRepository.findByOwnerIsNotNull(issuedListSort(secondary));
+            }
+            if (secondary.isUnsorted()) {
+                return bookRepository.findByOwnerIsNull(Sort.unsorted());
+            }
+            return bookRepository.findByOwnerIsNull(secondary);
+        }
+        if (secondary.isUnsorted()) {
             return bookRepository.findAll();
         }
-        return bookRepository.findAll(sort);
+        return bookRepository.findAll(secondary);
     }
 
     public Book findOne(int id) {
@@ -106,12 +116,24 @@ public class BookService {
      */
     public Page<Book> findForIndexPage(Integer page, Integer booksPerPage,
                                        boolean sortByYear, boolean sortByGenre,
-                                       boolean sortByTitle, boolean sortByAuthor) {
+                                       boolean sortByTitle, boolean sortByAuthor,
+                                       boolean sortByAvailability, boolean availabilityIssuedFirst) {
         if (page == null && booksPerPage == null) {
-            Sort sort = indexSort(sortByYear, sortByGenre, sortByTitle, sortByAuthor);
-            List<Book> content = sort.isUnsorted()
-                    ? bookRepository.findAll()
-                    : bookRepository.findAll(sort);
+            Sort secondary = secondaryIndexSort(sortByYear, sortByGenre, sortByTitle, sortByAuthor);
+            List<Book> content;
+            if (sortByAvailability) {
+                if (availabilityIssuedFirst) {
+                    content = bookRepository.findByOwnerIsNotNull(issuedListSort(secondary));
+                } else if (secondary.isUnsorted()) {
+                    content = bookRepository.findByOwnerIsNull(Sort.unsorted());
+                } else {
+                    content = bookRepository.findByOwnerIsNull(secondary);
+                }
+            } else if (secondary.isUnsorted()) {
+                content = bookRepository.findAll();
+            } else {
+                content = bookRepository.findAll(secondary);
+            }
             return new PageImpl<>(content);
         }
         int pageOneBased = page == null ? 1 : page;
@@ -126,21 +148,33 @@ public class BookService {
             size = MAX_PAGE_SIZE;
         }
         return findWithPagination(pageOneBased - 1, size, sortByYear, sortByGenre,
-                sortByTitle, sortByAuthor);
+                sortByTitle, sortByAuthor, sortByAvailability, availabilityIssuedFirst);
     }
 
     public Page<Book> findWithPagination(Integer page, Integer booksPerPage,
                                          boolean sortByYear, boolean sortByGenre,
-                                         boolean sortByTitle, boolean sortByAuthor) {
-        Sort sort = indexSort(sortByYear, sortByGenre, sortByTitle, sortByAuthor);
-        Pageable pageable = sort.isUnsorted()
+                                         boolean sortByTitle, boolean sortByAuthor,
+                                         boolean sortByAvailability, boolean availabilityIssuedFirst) {
+        Sort secondary = secondaryIndexSort(sortByYear, sortByGenre, sortByTitle, sortByAuthor);
+        if (sortByAvailability) {
+            if (availabilityIssuedFirst) {
+                Sort sort = issuedListSort(secondary);
+                return bookRepository.findByOwnerIsNotNull(PageRequest.of(page, booksPerPage, sort));
+            }
+            if (secondary.isUnsorted()) {
+                return bookRepository.findByOwnerIsNull(PageRequest.of(page, booksPerPage));
+            }
+            return bookRepository.findByOwnerIsNull(PageRequest.of(page, booksPerPage, secondary));
+        }
+        Pageable pageable = secondary.isUnsorted()
                 ? PageRequest.of(page, booksPerPage)
-                : PageRequest.of(page, booksPerPage, sort);
+                : PageRequest.of(page, booksPerPage, secondary);
         return bookRepository.findAll(pageable);
     }
 
-    private static Sort indexSort(boolean sortByYear, boolean sortByGenre,
-                                  boolean sortByTitle, boolean sortByAuthor) {
+    /** Порядок полей год / жанр / название / автор (без фильтра по выдаче). */
+    private static Sort secondaryIndexSort(boolean sortByYear, boolean sortByGenre,
+                                          boolean sortByTitle, boolean sortByAuthor) {
         Sort sort = Sort.unsorted();
         if (sortByTitle) {
             sort = sort.and(Sort.by("title"));
@@ -155,5 +189,10 @@ public class BookService {
             sort = sort.and(Sort.by("yearPublished"));
         }
         return sort;
+    }
+
+    private static Sort issuedListSort(Sort secondary) {
+        Sort byTaken = Sort.by("takenAt");
+        return secondary.isUnsorted() ? byTaken : byTaken.and(secondary);
     }
 }

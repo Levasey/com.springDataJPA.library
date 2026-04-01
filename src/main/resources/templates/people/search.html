@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Поиск читателей', ~{::main})}">
+<body>
+<th:block th:fragment="main">
+    <h1 class="page-title">Поиск читателей</h1>
+    <form class="form-stack panel" style="max-width:100%;margin:0 0 1.5rem" th:method="GET" th:action="@{/people/search}">
+        <div class="field">
+            <label for="people-q">Запрос</label>
+            <input type="text" id="people-q" name="q" th:value="${q}" autocomplete="off" placeholder="Имя, фамилия, email…"/>
+        </div>
+        <div class="actions" style="margin-top:0">
+            <input class="btn btn-primary" type="submit" value="Искать"/>
+        </div>
+    </form>
+
+    <div th:if="${people != null}" class="search-results">
+        <p th:if="${people.isEmpty()}" class="muted" style="margin:0">Читателей не найдено.</p>
+        <article class="result" th:each="person : ${people}">
+            <p style="margin:0 0 0.35rem">
+                <a th:href="@{/people/{personId}(personId=${person.getPersonId()})}"
+                   class="result-title-link"
+                   th:text="${person.getName() + ' ' + person.getSurname()}">читатель</a>
+                <span class="muted" th:text="| · ${person.getEmail()}|"></span>
+            </p>
+            <div class="actions" style="margin-top:0.5rem">
+                <a class="btn btn-secondary" th:href="@{/people/{personId}(personId=${person.getPersonId()})}">Карточка</a>
+                <a class="btn btn-primary" th:href="@{/people/{personId}/edit(personId=${person.getPersonId()})}">Редактировать</a>
+            </div>
+        </article>
+    </div>
+</th:block>
+</body>
+</html>

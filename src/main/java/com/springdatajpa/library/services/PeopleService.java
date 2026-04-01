@@ -9,9 +9,11 @@ import com.springdatajpa.library.repositories.BookRepository;
 import com.springdatajpa.library.repositories.PeopleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -30,6 +32,17 @@ public class PeopleService {
 
     public List<Person> findAll() {
         return peopleRepository.findAll();
+    }
+
+    public List<Person> searchPeople(String query) {
+        if (!StringUtils.hasText(query)) {
+            return Collections.emptyList();
+        }
+        String q = query.trim();
+        if (q.length() > 200) {
+            q = q.substring(0, 200);
+        }
+        return peopleRepository.findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCase(q, q, q);
     }
 
     public Person findById(int id) {

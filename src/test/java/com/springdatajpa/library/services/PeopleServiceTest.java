@@ -41,6 +41,21 @@ class PeopleServiceTest {
     }
 
     @Test
+    void searchPeople_blankDoesNotHitRepository() {
+        assertTrue(peopleService.searchPeople("").isEmpty());
+        assertTrue(peopleService.searchPeople("   ").isEmpty());
+        verifyNoInteractions(peopleRepository);
+    }
+
+    @Test
+    void searchPeople_delegatesToRepository() {
+        List<Person> list = List.of(new Person());
+        when(peopleRepository.findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                "x", "x", "x")).thenReturn(list);
+        assertSame(list, peopleService.searchPeople("x"));
+    }
+
+    @Test
     void findById_returnsPersonWhenPresent() {
         Person p = new Person();
         when(peopleRepository.findById(1)).thenReturn(Optional.of(p));

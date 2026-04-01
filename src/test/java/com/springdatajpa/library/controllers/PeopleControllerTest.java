@@ -19,6 +19,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -48,6 +49,23 @@ class PeopleControllerTest {
         mockMvc.perform(get("/people"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("people/index"));
+    }
+
+    @Test
+    void searchPage_withoutQuery() throws Exception {
+        mockMvc.perform(get("/people/search"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("people/search"));
+        verifyNoInteractions(peopleService);
+    }
+
+    @Test
+    void search_withQuery() throws Exception {
+        when(peopleService.searchPeople("ив")).thenReturn(List.of());
+        mockMvc.perform(get("/people/search").param("q", "ив"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("people/search"));
+        verify(peopleService).searchPeople("ив");
     }
 
     @Test

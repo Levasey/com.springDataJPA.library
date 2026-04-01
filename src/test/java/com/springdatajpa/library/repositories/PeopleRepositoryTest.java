@@ -7,9 +7,11 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
@@ -34,5 +36,24 @@ class PeopleRepositoryTest {
 
         assertTrue(found.isPresent());
         assertEquals("Smith", found.get().getSurname());
+    }
+
+    @Test
+    void search_matchesNameOrSurnameOrEmail() {
+        Person p = new Person();
+        p.setName("Иван");
+        p.setSurname("Петров");
+        p.setEmail("ivan@example.com");
+        p.setAddress("USA, Boston, 111111");
+        peopleRepository.save(p);
+        peopleRepository.flush();
+
+        List<Person> byName = peopleRepository
+                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCase("иван", "иван", "иван");
+        List<Person> byEmail = peopleRepository
+                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCase("example", "example", "example");
+
+        assertFalse(byName.isEmpty());
+        assertFalse(byEmail.isEmpty());
     }
 }

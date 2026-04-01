@@ -5,6 +5,7 @@ import com.springdatajpa.library.services.PeopleService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,16 @@ public class PeopleController {
         model.addAttribute("people", peopleService.findAll());
 
         return "people/index";
+    }
+
+    @GetMapping("/search")
+    public String search(@RequestParam(value = "q", required = false) String q, Model model) {
+        if (StringUtils.hasText(q)) {
+            String trimmed = q.trim();
+            model.addAttribute("people", peopleService.searchPeople(trimmed));
+            model.addAttribute("q", trimmed.length() > 200 ? trimmed.substring(0, 200) : trimmed);
+        }
+        return "people/search";
     }
 
     @GetMapping("/{personId}")

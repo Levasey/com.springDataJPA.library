@@ -13,18 +13,29 @@
 </head>
 <body>
 <a class="skip-link" href="#main-content">К содержимому</a>
-<header class="site-header" th:with="reqUri=${#httpServletRequest != null ? #httpServletRequest.requestURI : ''}">
+<header class="site-header" th:with="reqUri=${requestUri != null ? requestUri : ''}">
     <a class="brand" th:href="@{/}">Библиотека</a>
+    <form sec:authorize="isAuthenticated()" class="header-search" method="get" role="search"
+          th:action="@{${headerSearchUrl}}"
+          th:attr="aria-label=${headerSearchReadersMode} ? 'Поиск по читателям' : 'Поиск по каталогу книг'">
+        <label class="visually-hidden" for="header-search-q"
+               th:text="${headerSearchReadersMode} ? 'Поиск читателей' : 'Поиск книг'">Поиск</label>
+        <input type="search" id="header-search-q" name="q"
+               th:value="${headerSearchQ != null ? headerSearchQ : ''}"
+               autocomplete="off" enterkeyhint="search"
+               th:placeholder="${headerSearchReadersMode} ? 'Имя, фамилия, email…' : 'Название, автор…'"/>
+        <button type="submit" class="header-search-submit">Найти</button>
+    </form>
     <nav class="nav-links" aria-label="Основная навигация">
         <a th:href="@{/books}"
-           th:attr="aria-current=${#strings.startsWith(reqUri, '/books') and not #strings.startsWith(reqUri, '/books/search') ? 'page' : null}">Книги</a>
+           th:attr="aria-current=${#strings.startsWith(reqUri, '/books') and not (#strings.startsWith(reqUri, '/books/search')) ? 'page' : null}">Книги</a>
         <a sec:authorize="hasRole('LIBRARIAN')" th:href="@{/people}"
            th:attr="aria-current=${#strings.startsWith(reqUri, '/people') ? 'page' : null}">Читатели</a>
-        <a th:href="@{/books/search}"
+        <a sec:authorize="!isAuthenticated()" th:href="@{/books/search}"
            th:attr="aria-current=${#strings.startsWith(reqUri, '/books/search') ? 'page' : null}">Поиск</a>
         <a sec:authorize="hasRole('LIBRARIAN')" th:href="@{/register}"
            th:attr="aria-current=${#strings.startsWith(reqUri, '/register') ? 'page' : null}">Новый пользователь</a>
-        <form sec:authorize="hasAnyRole('USER','LIBRARIAN')" class="nav-logout" th:action="@{/logout}" method="post">
+        <form sec:authorize="isAuthenticated()" class="nav-logout" th:action="@{/logout}" method="post">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
             <button type="submit" class="nav-logout-btn">Выйти</button>
         </form>

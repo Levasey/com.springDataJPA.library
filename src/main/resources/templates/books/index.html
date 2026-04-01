@@ -4,6 +4,20 @@
 <body>
 <th:block th:fragment="main">
     <h1 class="page-title">Книги</h1>
+    <p class="sort-toolbar">
+        Сортировка:
+        <a th:href="@{/books(page=${booksPage.number + 1}, books_per_page=${booksPage.size}, sort_by_year=false, sort_by_genre=false)}"
+           th:classappend="${!sortByYear and !sortByGenre} ? ' sort-active' : ''">по умолчанию</a>
+        ·
+        <a th:href="@{/books(page=${booksPage.number + 1}, books_per_page=${booksPage.size}, sort_by_year=true, sort_by_genre=false)}"
+           th:classappend="${sortByYear and !sortByGenre} ? ' sort-active' : ''">по году</a>
+        ·
+        <a th:href="@{/books(page=${booksPage.number + 1}, books_per_page=${booksPage.size}, sort_by_year=false, sort_by_genre=true)}"
+           th:classappend="${sortByGenre and !sortByYear} ? ' sort-active' : ''">по жанру</a>
+        ·
+        <a th:href="@{/books(page=${booksPage.number + 1}, books_per_page=${booksPage.size}, sort_by_year=true, sort_by_genre=true)}"
+           th:classappend="${sortByYear and sortByGenre} ? ' sort-active' : ''">жанр и год</a>
+    </p>
     <ul class="card-list">
         <li th:each="book : ${booksPage.content}">
             <a th:href="@{/books/{bookId}(bookId=${book.getBookId()})}"
@@ -14,10 +28,10 @@
         <span th:text="|Страница ${booksPage.number + 1} из ${booksPage.totalPages} · всего ${booksPage.totalElements}|">страница</span>
         <span>
             <a th:if="${booksPage.hasPrevious()}"
-               th:href="@{/books(page=${booksPage.number}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear})}">← Назад</a>
+               th:href="@{/books(page=${booksPage.number}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear}, sort_by_genre=${sortByGenre})}">← Назад</a>
             <span th:if="${booksPage.hasPrevious() and booksPage.hasNext()}"> · </span>
             <a th:if="${booksPage.hasNext()}"
-               th:href="@{/books(page=${booksPage.number + 2}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear})}">Вперёд →</a>
+               th:href="@{/books(page=${booksPage.number + 2}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear}, sort_by_genre=${sortByGenre})}">Вперёд →</a>
         </span>
     </div>
     <div class="actions" sec:authorize="hasRole('LIBRARIAN')">

@@ -34,10 +34,12 @@ public class BookController {
     @GetMapping()
     public String index(Model model, @RequestParam(value = "page", required = false) Integer page,
                         @RequestParam(value = "books_per_page", required = false) Integer booksPerPage,
-                        @RequestParam(value = "sort_by_year", required = false) boolean sortByYear) {
-        Page<Book> booksPage = bookService.findForIndexPage(page, booksPerPage, sortByYear);
+                        @RequestParam(value = "sort_by_year", required = false) boolean sortByYear,
+                        @RequestParam(value = "sort_by_genre", required = false) boolean sortByGenre) {
+        Page<Book> booksPage = bookService.findForIndexPage(page, booksPerPage, sortByYear, sortByGenre);
         model.addAttribute("booksPage", booksPage);
         model.addAttribute("sortByYear", sortByYear);
+        model.addAttribute("sortByGenre", sortByGenre);
         return "books/index";
     }
 

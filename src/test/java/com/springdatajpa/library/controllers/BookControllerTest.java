@@ -55,27 +55,35 @@ class BookControllerTest {
 
     @Test
     void index_allBooks() throws Exception {
-        when(bookService.findForIndexPage(null, null, false)).thenReturn(new PageImpl<>(List.of()));
+        when(bookService.findForIndexPage(null, null, false, false)).thenReturn(new PageImpl<>(List.of()));
         mockMvc.perform(get("/books"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("books/index"));
-        verify(bookService).findForIndexPage(null, null, false);
+        verify(bookService).findForIndexPage(null, null, false, false);
     }
 
     @Test
     void index_withPagination_delegatesToService() throws Exception {
-        when(bookService.findForIndexPage(1, 10, true)).thenReturn(new PageImpl<>(List.of()));
+        when(bookService.findForIndexPage(1, 10, true, false)).thenReturn(new PageImpl<>(List.of()));
         mockMvc.perform(get("/books").param("page", "1").param("books_per_page", "10").param("sort_by_year", "true"))
                 .andExpect(status().isOk());
-        verify(bookService).findForIndexPage(1, 10, true);
+        verify(bookService).findForIndexPage(1, 10, true, false);
+    }
+
+    @Test
+    void index_sortByGenre_delegatesToService() throws Exception {
+        when(bookService.findForIndexPage(null, null, false, true)).thenReturn(new PageImpl<>(List.of()));
+        mockMvc.perform(get("/books").param("sort_by_genre", "true"))
+                .andExpect(status().isOk());
+        verify(bookService).findForIndexPage(null, null, false, true);
     }
 
     @Test
     void index_withPagination_pageZeroClampedToFirstPage() throws Exception {
-        when(bookService.findForIndexPage(0, 10, true)).thenReturn(new PageImpl<>(List.of()));
+        when(bookService.findForIndexPage(0, 10, true, false)).thenReturn(new PageImpl<>(List.of()));
         mockMvc.perform(get("/books").param("page", "0").param("books_per_page", "10").param("sort_by_year", "true"))
                 .andExpect(status().isOk());
-        verify(bookService).findForIndexPage(0, 10, true);
+        verify(bookService).findForIndexPage(0, 10, true, false);
     }
 
     @Test

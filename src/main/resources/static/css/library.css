@@ -220,6 +220,30 @@ main.container {
   color: var(--text);
 }
 
+.sort-toolbar {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: -0.5rem 0 1.25rem;
+  line-height: 1.6;
+}
+
+.sort-toolbar a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.sort-toolbar a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.sort-toolbar a.sort-active {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  pointer-events: none;
+}
+
 .stack {
   display: flex;
   flex-direction: column;

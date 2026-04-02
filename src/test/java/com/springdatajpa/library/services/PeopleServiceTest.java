@@ -65,9 +65,7 @@ class PeopleServiceTest {
     @Test
     void searchPeople_delegatesToRepository() {
         List<Person> list = List.of(new Person());
-        when(peopleRepository
-                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
-                        "x", "x", "x", "x", "x")).thenReturn(list);
+        when(peopleRepository.searchByText("x")).thenReturn(list);
         assertSame(list, peopleService.searchPeople("x"));
     }
 

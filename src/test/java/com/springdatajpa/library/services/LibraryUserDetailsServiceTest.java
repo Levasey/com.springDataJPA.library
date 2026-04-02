@@ -53,6 +53,17 @@ class LibraryUserDetailsServiceTest {
     }
 
     @Test
+    void loadUserByUsername_findsLibrarianByCaseInsensitiveUsername() {
+        LibraryUser librarian = new LibraryUser("headlib", "{bcrypt}h", true, UserRole.LIBRARIAN);
+        when(libraryUserRepository.findByUsername("headlib")).thenReturn(Optional.of(librarian));
+
+        UserDetails details = libraryUserDetailsService.loadUserByUsername("  HeadLib  ");
+
+        assertEquals("headlib", details.getUsername());
+        verifyNoInteractions(peopleRepository);
+    }
+
+    @Test
     void loadUserByUsername_findsByReaderCard_whenEmailLookupMisses() {
         when(libraryUserRepository.findByUsername("j-1001")).thenReturn(Optional.empty());
         Person person = new Person();

@@ -39,7 +39,8 @@ public class RegistrationController {
         }
 
         String initialPassword = registrationService.register(username);
-        redirectAttributes.addFlashAttribute("registeredUsername", username);
+        redirectAttributes.addFlashAttribute(
+                "registeredUsername", RegistrationService.catalogUsernameFromEmail(username));
         redirectAttributes.addFlashAttribute("registeredInitialPassword", initialPassword);
         return "redirect:/register";
     }

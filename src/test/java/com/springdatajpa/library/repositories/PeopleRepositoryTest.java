@@ -50,15 +50,9 @@ class PeopleRepositoryTest {
         peopleRepository.save(p);
         peopleRepository.flush();
 
-        List<Person> byName = peopleRepository
-                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
-                        "иван", "иван", "иван", "иван", "иван");
-        List<Person> byEmail = peopleRepository
-                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
-                        "example", "example", "example", "example", "example");
-        List<Person> byCard = peopleRepository
-                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
-                        "READER-002", "READER-002", "READER-002", "READER-002", "READER-002");
+        List<Person> byName = peopleRepository.searchByText("иван");
+        List<Person> byEmail = peopleRepository.searchByText("example");
+        List<Person> byCard = peopleRepository.searchByText("READER-002");
 
         assertFalse(byName.isEmpty());
         assertFalse(byEmail.isEmpty());
@@ -77,9 +71,7 @@ class PeopleRepositoryTest {
         peopleRepository.save(p);
         peopleRepository.flush();
 
-        List<Person> found = peopleRepository
-                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
-                        "сергеев", "сергеев", "сергеев", "сергеев", "сергеев");
+        List<Person> found = peopleRepository.searchByText("сергеев");
 
         assertFalse(found.isEmpty());
     }

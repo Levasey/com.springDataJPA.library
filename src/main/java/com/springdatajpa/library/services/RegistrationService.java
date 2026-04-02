@@ -29,7 +29,7 @@ public class RegistrationService {
     }
 
     public boolean usernameExists(String username) {
-        return libraryUserRepository.existsByUsername(username);
+        return libraryUserRepository.existsByUsername(catalogUsernameFromEmail(username));
     }
 
     /** Логин в каталоге для читателя — нормализованный email. */
@@ -70,9 +70,16 @@ public class RegistrationService {
      */
     @Transactional
     public String register(String username) {
+        String normalized = catalogUsernameFromEmail(username);
+        if (normalized.isBlank()) {
+            throw new IllegalArgumentException("Имя пользователя не задано.");
+        }
+        if (libraryUserRepository.existsByUsername(normalized)) {
+            throw new ConflictException("Учётная запись с таким логином уже существует.");
+        }
         String rawPassword = generateInitialPassword();
         LibraryUser user =
-                new LibraryUser(username, passwordEncoder.encode(rawPassword), true, UserRole.LIBRARIAN);
+                new LibraryUser(normalized, passwordEncoder.encode(rawPassword), true, UserRole.LIBRARIAN);
         libraryUserRepository.save(user);
         return rawPassword;
     }

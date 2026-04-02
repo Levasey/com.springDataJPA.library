@@ -2,6 +2,7 @@ package com.springdatajpa.library.services;
 
 import com.springdatajpa.library.dto.BookForm;
 import com.springdatajpa.library.exception.BadRequestException;
+import com.springdatajpa.library.exception.ConflictException;
 import com.springdatajpa.library.exception.ResourceNotFoundException;
 import com.springdatajpa.library.models.Book;
 import com.springdatajpa.library.models.Person;
@@ -73,8 +74,11 @@ public class BookService {
 
     @Transactional
     public void delete(int id) {
-        if (!bookRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Книга не найдена (id=" + id + ").");
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Книга не найдена (id=" + id + ")."));
+        if (book.getOwner() != null) {
+            throw new ConflictException(
+                    "Нельзя удалить книгу, пока она выдана читателю. Сначала оформите возврат.");
         }
         bookRepository.deleteById(id);
     }

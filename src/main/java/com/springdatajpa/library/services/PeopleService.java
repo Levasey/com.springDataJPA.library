@@ -61,9 +61,7 @@ public class PeopleService {
         if (q.length() > 200) {
             q = q.substring(0, 200);
         }
-        return peopleRepository
-                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
-                        q, q, q, q, q);
+        return peopleRepository.searchByText(q);
     }
 
     public Person findById(int id) {

@@ -19,7 +19,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.validation.method.ParameterValidationResult;
 
+import java.util.Collection;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
@@ -127,8 +130,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HandlerMethodValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ModelAndView handleMethodValidation(HandlerMethodValidationException ex) {
+        log.debug("Method validation failed", ex);
+        String message =
+                ex.getAllValidationResults().stream()
+                        .map(ParameterValidationResult::getResolvableErrors)
+                        .flatMap(Collection::stream)
+                        .map(MessageSourceResolvable::getDefaultMessage)
+                        .filter(m -> m != null && !m.isBlank())
+                        .collect(Collectors.joining(" "));
+        if (message.isBlank()) {
+            message = "Некорректные данные. Проверьте форму и попробуйте снова.";
+        }
         ModelAndView mv = new ModelAndView("error/bad-request");
-        mv.addObject("message", ex.getMessage());
+        mv.addObject("message", message);
         return mv;
     }
 

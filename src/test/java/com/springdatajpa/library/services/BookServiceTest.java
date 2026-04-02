@@ -2,6 +2,7 @@ package com.springdatajpa.library.services;
 
 import com.springdatajpa.library.dto.BookForm;
 import com.springdatajpa.library.exception.BadRequestException;
+import com.springdatajpa.library.exception.ConflictException;
 import com.springdatajpa.library.exception.ResourceNotFoundException;
 import com.springdatajpa.library.models.Book;
 import com.springdatajpa.library.models.Genre;
@@ -158,15 +159,26 @@ class BookServiceTest {
 
     @Test
     void delete_delegatesToRepository() {
-        when(bookRepository.existsById(7)).thenReturn(true);
+        Book book = new Book("T", "A", 2000);
+        book.setOwner(null);
+        when(bookRepository.findById(7)).thenReturn(Optional.of(book));
         bookService.delete(7);
         verify(bookRepository).deleteById(7);
     }
 
     @Test
     void delete_throwsWhenMissing() {
-        when(bookRepository.existsById(7)).thenReturn(false);
+        when(bookRepository.findById(7)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> bookService.delete(7));
+        verify(bookRepository, never()).deleteById(anyInt());
+    }
+
+    @Test
+    void delete_throwsWhenIssued() {
+        Book book = new Book("T", "A", 2000);
+        book.setOwner(new Person());
+        when(bookRepository.findById(7)).thenReturn(Optional.of(book));
+        assertThrows(ConflictException.class, () -> bookService.delete(7));
         verify(bookRepository, never()).deleteById(anyInt());
     }
 

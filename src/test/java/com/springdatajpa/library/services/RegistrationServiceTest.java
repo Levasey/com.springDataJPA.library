@@ -47,6 +47,31 @@ class RegistrationServiceTest {
     }
 
     @Test
+    void register_normalizesUsername_trimAndLowerCase() {
+        when(passwordEncoder.encode(any())).thenAnswer(inv -> "HASH-" + inv.getArgument(0));
+        when(libraryUserRepository.existsByUsername("headlib")).thenReturn(false);
+
+        registrationService.register("  HeadLib  ");
+
+        ArgumentCaptor<LibraryUser> captor = ArgumentCaptor.forClass(LibraryUser.class);
+        verify(libraryUserRepository).save(captor.capture());
+        assertEquals("headlib", captor.getValue().getUsername());
+    }
+
+    @Test
+    void register_throwsWhenNormalizedUsernameTaken() {
+        when(libraryUserRepository.existsByUsername("taken")).thenReturn(true);
+        assertThrows(ConflictException.class, () -> registrationService.register("Taken"));
+        verify(libraryUserRepository, never()).save(any());
+    }
+
+    @Test
+    void register_throwsWhenUsernameBlankAfterNormalization() {
+        assertThrows(IllegalArgumentException.class, () -> registrationService.register("   "));
+        verify(libraryUserRepository, never()).save(any());
+    }
+
+    @Test
     void registerCatalogUser_savesEncodedPassword() {
         when(passwordEncoder.encode(any())).thenAnswer(inv -> "H-" + inv.getArgument(0));
         when(libraryUserRepository.existsByUsername("a@b.c")).thenReturn(false);

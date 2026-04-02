@@ -563,6 +563,10 @@ input.btn {
   background: rgba(110, 180, 255, 0.06);
 }
 
+.book-table tbody tr.row-overdue {
+  background: var(--danger-bg);
+}
+
 .book-table a {
   color: var(--accent);
   font-weight: 500;

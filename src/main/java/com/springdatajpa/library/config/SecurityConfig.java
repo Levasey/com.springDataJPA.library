@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**")
                         .permitAll()
+                        .requestMatchers("/me", "/me/**").hasRole("USER")
                         .requestMatchers("/people/**").hasRole("LIBRARIAN")
                         .requestMatchers(HttpMethod.GET, "/books/search").hasAnyRole("USER", "LIBRARIAN")
                         .requestMatchers(HttpMethod.GET, "/books/new").hasRole("LIBRARIAN")

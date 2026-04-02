@@ -31,6 +31,8 @@
            th:attr="aria-current=${#strings.startsWith(reqUri, '/books') and not (#strings.startsWith(reqUri, '/books/search')) ? 'page' : null}">Книги</a>
         <a sec:authorize="hasRole('LIBRARIAN')" th:href="@{/people}"
            th:attr="aria-current=${#strings.startsWith(reqUri, '/people') ? 'page' : null}">Читатели</a>
+        <a sec:authorize="hasRole('USER')" th:href="@{/me}"
+           th:attr="aria-current=${#strings.startsWith(reqUri, '/me') ? 'page' : null}">Моя карточка</a>
         <a sec:authorize="!isAuthenticated()" th:href="@{/books/search}"
            th:attr="aria-current=${#strings.startsWith(reqUri, '/books/search') ? 'page' : null}">Поиск</a>
         <form sec:authorize="isAuthenticated()" class="nav-logout" th:action="@{/logout}" method="post">

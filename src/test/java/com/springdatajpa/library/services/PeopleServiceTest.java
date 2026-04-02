@@ -79,6 +79,21 @@ class PeopleServiceTest {
     }
 
     @Test
+    void findByCatalogLogin_blankIsEmpty() {
+        assertTrue(peopleService.findByCatalogLogin(null).isEmpty());
+        assertTrue(peopleService.findByCatalogLogin("   ").isEmpty());
+        verifyNoInteractions(peopleRepository);
+    }
+
+    @Test
+    void findByCatalogLogin_normalizesEmail() {
+        Person p = new Person();
+        when(peopleRepository.findByEmail("x@y.z")).thenReturn(Optional.of(p));
+        assertSame(p, peopleService.findByCatalogLogin("  X@Y.Z  ").orElseThrow());
+        verify(peopleRepository).findByEmail("x@y.z");
+    }
+
+    @Test
     void save_registersInvitationAndMailsWhenPrimed() {
         when(peopleRepository.findByEmail("n@s.com")).thenReturn(Optional.empty());
         when(peopleRepository.findByReaderCardNumber("CARD-N")).thenReturn(Optional.empty());

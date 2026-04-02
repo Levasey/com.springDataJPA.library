@@ -67,6 +67,16 @@ public class PeopleService {
     }
 
     /**
+     * Читатель в каталоге: логин совпадает с нормализованным email в карточке.
+     */
+    public Optional<Person> findByCatalogLogin(String catalogLogin) {
+        if (!StringUtils.hasText(catalogLogin)) {
+            return Optional.empty();
+        }
+        return peopleRepository.findByEmail(RegistrationService.catalogUsernameFromEmail(catalogLogin));
+    }
+
+    /**
      * @param excludePersonId при редактировании — id текущего читателя; при создании — {@code null}
      */
     public boolean isEmailTakenBySomeoneElse(String normalizedEmail, Integer excludePersonId) {

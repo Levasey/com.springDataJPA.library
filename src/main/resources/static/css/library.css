@@ -446,6 +446,7 @@ input.btn {
 }
 
 .field input[type="text"],
+.field input[type="password"],
 .field input[type="date"],
 .field select {
   width: 100%;
@@ -457,6 +458,40 @@ input.btn {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+}
+
+.field .password-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+}
+
+.field .password-wrap > input {
+  padding-right: 5.25rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 0.35rem 0.55rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+  color: var(--accent-hover);
+  background: rgba(110, 180, 255, 0.12);
+  outline: none;
 }
 
 .field input:focus,

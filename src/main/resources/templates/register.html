@@ -18,12 +18,18 @@
         </div>
         <div class="field">
             <label for="password">Пароль</label>
-            <input id="password" th:field="*{password}" type="password" autocomplete="new-password" required/>
+            <div class="password-wrap">
+                <input id="password" th:field="*{password}" type="password" autocomplete="new-password" required/>
+                <button type="button" class="password-toggle" aria-controls="password" aria-pressed="false" aria-label="Показать пароль">Показать</button>
+            </div>
             <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="field-error" style="margin:0.35rem 0 0; font-size:0.9rem; color:var(--danger)"></p>
         </div>
         <div class="field">
             <label for="confirmPassword">Пароль ещё раз</label>
-            <input id="confirmPassword" th:field="*{confirmPassword}" type="password" autocomplete="new-password" required/>
+            <div class="password-wrap">
+                <input id="confirmPassword" th:field="*{confirmPassword}" type="password" autocomplete="new-password" required/>
+                <button type="button" class="password-toggle" aria-controls="confirmPassword" aria-pressed="false" aria-label="Показать пароль">Показать</button>
+            </div>
             <p th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="field-error" style="margin:0.35rem 0 0; font-size:0.9rem; color:var(--danger)"></p>
         </div>
         <div class="actions" style="margin-top:0">
@@ -31,6 +37,7 @@
             <a class="btn btn-secondary" th:href="@{/books}">К каталогу</a>
         </div>
     </form>
+    <script defer th:src="@{/js/password-toggle.js}"></script>
 </th:block>
 </body>
 </html>

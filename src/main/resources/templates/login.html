@@ -21,12 +21,16 @@
         </div>
         <div class="field">
             <label for="password">Пароль</label>
-            <input id="password" name="password" type="password" autocomplete="current-password" required/>
+            <div class="password-wrap">
+                <input id="password" name="password" type="password" autocomplete="current-password" required/>
+                <button type="button" class="password-toggle" aria-controls="password" aria-pressed="false" aria-label="Показать пароль">Показать</button>
+            </div>
         </div>
         <div class="actions" style="margin-top:0">
             <button type="submit" class="btn btn-primary">Войти</button>
         </div>
     </form>
+    <script defer th:src="@{/js/password-toggle.js}"></script>
 </th:block>
 </body>
 </html>

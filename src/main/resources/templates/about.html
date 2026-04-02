@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('О библиотеке', ~{::main})}">
+<body>
+<th:block th:fragment="main">
+    <h1 class="page-title">О библиотеке</h1>
+    <section class="panel" aria-labelledby="about-desc-heading">
+        <h2 id="about-desc-heading" class="visually-hidden">Описание</h2>
+        <p class="muted" style="margin-top:0">Электронный каталог для учёта читателей и фонда книг: поиск по каталогу и читателям, выдача и возврат, жанры и сортировка списков. Доступ к полному функционалу каталога и учёта читателей имеют зарегистрированные пользователи; часть операций доступна только библиотекарю.</p>
+        <p style="margin-bottom:0">Приложение построено на <strong>Spring Boot 3</strong>, <strong>Spring Data JPA</strong> и <strong>Thymeleaf</strong>; данные хранятся в <strong>PostgreSQL</strong>, схема обновляется через <strong>Flyway</strong>. Вход и роли обеспечивает <strong>Spring Security</strong>.</p>
+    </section>
+</th:block>
+</body>
+</html>

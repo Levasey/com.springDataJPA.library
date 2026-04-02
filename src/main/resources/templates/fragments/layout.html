@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,600;1,8..60,400&amp;display=swap" rel="stylesheet"/>
     <link rel="stylesheet" th:href="@{/css/library.css}"/>
 </head>
-<body>
+<body class="site-shell">
 <a class="skip-link" href="#main-content">К содержимому</a>
 <header class="site-header" th:with="reqUri=${requestUri != null ? requestUri : ''}">
     <a class="brand" th:href="@{/}">Библиотека</a>
@@ -27,6 +27,8 @@
         <button type="submit" class="header-search-submit">Найти</button>
     </form>
     <nav class="nav-links" aria-label="Основная навигация">
+        <a th:href="@{/about}"
+           th:attr="aria-current=${#strings.startsWith(reqUri, '/about') ? 'page' : null}">О библиотеке</a>
         <a th:href="@{/books}"
            th:attr="aria-current=${#strings.startsWith(reqUri, '/books') and not (#strings.startsWith(reqUri, '/books/search')) ? 'page' : null}">Книги</a>
         <a sec:authorize="hasRole('LIBRARIAN')" th:href="@{/people}"
@@ -41,8 +43,9 @@
         </form>
     </nav>
 </header>
-<main id="main-content" class="container">
+<main id="main-content" class="container site-main">
     <th:block th:replace="${main}"/>
 </main>
+<footer th:replace="~{fragments/footer :: siteFooter}"></footer>
 </body>
 </html>

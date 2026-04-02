@@ -78,6 +78,20 @@ class LibraryUserDetailsServiceTest {
     }
 
     @Test
+    void loadUserByUsername_findsByReaderCard_normalizesPersonEmail() {
+        when(libraryUserRepository.findByUsername("j-2002")).thenReturn(Optional.empty());
+        Person person = new Person();
+        person.setEmail("  Reader@Mail.TEST  ");
+        person.setReaderCardNumber("J-2002");
+        when(peopleRepository.findByReaderCardNumber("J-2002")).thenReturn(Optional.of(person));
+        when(libraryUserRepository.findByUsername("reader@mail.test")).thenReturn(Optional.of(catalogUser));
+
+        UserDetails details = libraryUserDetailsService.loadUserByUsername("J-2002");
+
+        assertEquals("reader@mail.test", details.getUsername());
+    }
+
+    @Test
     void loadUserByUsername_blank_throws() {
         assertThrows(UsernameNotFoundException.class, () -> libraryUserDetailsService.loadUserByUsername("   "));
     }

@@ -95,6 +95,19 @@ class RegistrationServiceTest {
     }
 
     @Test
+    void registerCatalogUser_normalizesUsername_beforeExistsCheckAndSave() {
+        when(passwordEncoder.encode(any())).thenAnswer(inv -> "H-" + inv.getArgument(0));
+        when(libraryUserRepository.existsByUsername("a@b.c")).thenReturn(false);
+
+        registrationService.registerCatalogUser("  A@B.C  ", "secret");
+
+        verify(libraryUserRepository).existsByUsername("a@b.c");
+        ArgumentCaptor<LibraryUser> captor = ArgumentCaptor.forClass(LibraryUser.class);
+        verify(libraryUserRepository).save(captor.capture());
+        assertEquals("a@b.c", captor.getValue().getUsername());
+    }
+
+    @Test
     void registerCatalogUserWithInvitationPassword_savesRandomEncodedPassword() {
         when(passwordEncoder.encode(any())).thenAnswer(inv -> "HASH-" + inv.getArgument(0));
         when(libraryUserRepository.existsByUsername("inv@test")).thenReturn(false);

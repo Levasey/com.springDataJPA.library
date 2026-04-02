@@ -166,8 +166,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ServletRequestBindingException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ModelAndView handleServletRequestBinding(ServletRequestBindingException ex) {
+        log.debug("Servlet request binding failed", ex);
         ModelAndView mv = new ModelAndView("error/bad-request");
-        mv.addObject("message", ex.getMessage() != null ? ex.getMessage() : "Неверный запрос.");
+        mv.addObject("message", "Неверный запрос. Проверьте адрес и параметры.");
         return mv;
     }
 

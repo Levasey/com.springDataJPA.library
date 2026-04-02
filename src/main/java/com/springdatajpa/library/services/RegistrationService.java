@@ -54,13 +54,14 @@ public class RegistrationService {
      */
     @Transactional
     public void registerCatalogUser(String username, String rawPassword) {
-        if (username == null || username.isBlank()) {
+        String normalized = catalogUsernameFromEmail(username);
+        if (normalized.isBlank()) {
             throw new BadRequestException("Имя пользователя каталога не задано.");
         }
-        if (libraryUserRepository.existsByUsername(username)) {
+        if (libraryUserRepository.existsByUsername(normalized)) {
             throw new ConflictException("Учётная запись каталога с таким логином уже существует.", "email");
         }
-        LibraryUser user = new LibraryUser(username, passwordEncoder.encode(rawPassword), true);
+        LibraryUser user = new LibraryUser(normalized, passwordEncoder.encode(rawPassword), true);
         libraryUserRepository.save(user);
     }
 

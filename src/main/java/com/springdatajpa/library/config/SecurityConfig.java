@@ -32,7 +32,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/about", "/about/").permitAll()
                         .requestMatchers("/catalog/setup-password").permitAll()
                         .requestMatchers("/", "/login", "/logout", "/forgot-password", "/error",
-                                LibraryAccessDeniedHandler.FORBIDDEN_PAGE_PATH).permitAll()
+                                "/rate-limit-exceeded", LibraryAccessDeniedHandler.FORBIDDEN_PAGE_PATH).permitAll()
                         .requestMatchers("/register").hasRole("LIBRARIAN")
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico")
                         .permitAll()

@@ -14,3 +14,7 @@ spring:
     open-in-view: false
   flyway:
     enabled: false
+
+library:
+  rate-limit:
+    enabled: false

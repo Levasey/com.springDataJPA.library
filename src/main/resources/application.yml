@@ -46,3 +46,10 @@ library:
       # Включите true и настройте spring.mail / library.app.public-base-url — письмо со ссылкой на /catalog/setup-password
       enabled: false
       from: ""
+  rate-limit:
+    enabled: true
+    forgot-password-post-per-minute: 8
+    catalog-setup-get-per-minute: 60
+    catalog-setup-post-per-minute: 15
+    # За reverse proxy включите true, чтобы учитывать X-Forwarded-For
+    trust-x-forwarded-for: false

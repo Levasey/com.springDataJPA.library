@@ -53,7 +53,8 @@ public class LibraryUserDetailsService implements UserDetailsService {
         String trimmedCard = rawUsername.trim();
         return peopleRepository
                 .findByReaderCardNumber(trimmedCard)
-                .map(Person::getEmail)
+                .map(p -> RegistrationService.catalogUsernameFromEmail(p.getEmail()))
+                .filter(s -> !s.isBlank())
                 .flatMap(libraryUserRepository::findByUsername);
     }
 }

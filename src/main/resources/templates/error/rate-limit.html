@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout('429 — слишком много запросов', ~{::main})}">
+<body>
+<th:block th:fragment="main">
+<div class="error-page">
+    <h1 class="page-title">429</h1>
+    <p>Слишком много запросов с вашего адреса. Подождите минуту и попробуйте снова.</p>
+    <a class="btn btn-primary" th:href="@{/}">На главную</a>
+</div>
+</th:block>
+</body>
+</html>

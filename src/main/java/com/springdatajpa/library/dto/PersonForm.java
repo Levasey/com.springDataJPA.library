@@ -22,6 +22,10 @@ public class PersonForm {
     @Email(message = "Email should be valid")
     private String email;
 
+    @NotBlank(message = "Reader card number shouldn't be empty")
+    @Size(max = 64, message = "Reader card number should be at most 64 characters")
+    private String readerCardNumber;
+
     private String address;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -32,19 +36,21 @@ public class PersonForm {
         form.setName(person.getName());
         form.setSurname(person.getSurname());
         form.setEmail(person.getEmail());
+        form.setReaderCardNumber(person.getReaderCardNumber());
         form.setAddress(person.getAddress());
         form.setDateOfBirth(person.getDateOfBirth());
         return form;
     }
 
     public Person toNewPerson() {
-        return new Person(name, surname, email, address, dateOfBirth);
+        return new Person(name, surname, email, readerCardNumber, address, dateOfBirth);
     }
 
     public void applyTo(Person person) {
         person.setName(name);
         person.setSurname(surname);
         person.setEmail(email);
+        person.setReaderCardNumber(readerCardNumber);
         person.setAddress(address);
         person.setDateOfBirth(dateOfBirth);
     }
@@ -71,6 +77,14 @@ public class PersonForm {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getReaderCardNumber() {
+        return readerCardNumber;
+    }
+
+    public void setReaderCardNumber(String readerCardNumber) {
+        this.readerCardNumber = readerCardNumber;
     }
 
     public String getAddress() {

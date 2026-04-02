@@ -28,6 +28,7 @@ class PeopleRepositoryTest {
         p.setName("Alice");
         p.setSurname("Smith");
         p.setEmail("a@example.com");
+        p.setReaderCardNumber("READER-001");
         p.setAddress("USA, Boston, 111111");
         peopleRepository.save(p);
         peopleRepository.flush();
@@ -44,16 +45,23 @@ class PeopleRepositoryTest {
         p.setName("Иван");
         p.setSurname("Петров");
         p.setEmail("ivan@example.com");
+        p.setReaderCardNumber("READER-002");
         p.setAddress("USA, Boston, 111111");
         peopleRepository.save(p);
         peopleRepository.flush();
 
         List<Person> byName = peopleRepository
-                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCase("иван", "иван", "иван");
+                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
+                        "иван", "иван", "иван", "иван");
         List<Person> byEmail = peopleRepository
-                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCase("example", "example", "example");
+                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
+                        "example", "example", "example", "example");
+        List<Person> byCard = peopleRepository
+                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
+                        "READER-002", "READER-002", "READER-002", "READER-002");
 
         assertFalse(byName.isEmpty());
         assertFalse(byEmail.isEmpty());
+        assertFalse(byCard.isEmpty());
     }
 }

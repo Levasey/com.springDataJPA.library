@@ -4,6 +4,7 @@
 <th:block th:fragment="main">
     <h1 class="page-title" th:text="${person.getName() + ' ' + person.getSurname()}">Имя</h1>
     <div class="panel stack">
+        <p><span class="muted">Номер читательского билета:</span> <span th:text="${person.getReaderCardNumber()}">билет</span></p>
         <p><span class="muted">Электронная почта:</span> <span th:text="${person.getEmail()}">email</span></p>
         <p><span class="muted">Адрес:</span> <span th:text="${person.getAddress()}">адрес</span></p>
         <p><span class="muted">Дата рождения:</span> <span th:text="${person.getDateOfBirth()}">дата</span></p>

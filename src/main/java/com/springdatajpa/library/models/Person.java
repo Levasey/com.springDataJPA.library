@@ -32,6 +32,11 @@ public class Person {
     @Column(name = "email")
     private String email;
 
+    @NotBlank(message = "Reader card number shouldn't be empty")
+    @Size(max = 64, message = "Reader card number should be at most 64 characters")
+    @Column(name = "reader_card_number", nullable = false, unique = true, length = 64)
+    private String readerCardNumber;
+
     @Column(name = "address")
     private String address;
 
@@ -44,10 +49,12 @@ public class Person {
     public Person() {
     }
 
-    public Person(String name, String surname, String email, String address, LocalDate dateOfBirth) {
+    public Person(String name, String surname, String email, String readerCardNumber, String address,
+                  LocalDate dateOfBirth) {
         this.name = name;
         this.surname = surname;
         this.email = email;
+        this.readerCardNumber = readerCardNumber;
         this.address = address;
         this.dateOfBirth = dateOfBirth;
     }
@@ -84,6 +91,14 @@ public class Person {
         this.email = email;
     }
 
+    public String getReaderCardNumber() {
+        return readerCardNumber;
+    }
+
+    public void setReaderCardNumber(String readerCardNumber) {
+        this.readerCardNumber = readerCardNumber;
+    }
+
     public String getAddress() {
         return address;
     }
@@ -115,6 +130,7 @@ public class Person {
                 ", name='" + name + '\'' +
                 ", surname='" + surname + '\'' +
                 ", email='" + email + '\'' +
+                ", readerCardNumber='" + readerCardNumber + '\'' +
                 ", address='" + address + '\'' +
                 ", dateOfBirth=" + dateOfBirth +
                 '}';

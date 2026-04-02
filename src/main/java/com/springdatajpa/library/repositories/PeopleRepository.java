@@ -11,6 +11,6 @@ import java.util.Optional;
 public interface PeopleRepository extends JpaRepository<Person, Integer> {
     Optional<Person> findByName(String name);
 
-    List<Person> findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-            String namePart, String surnamePart, String emailPart);
+    List<Person> findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
+            String namePart, String surnamePart, String emailPart, String readerCardPart);
 }

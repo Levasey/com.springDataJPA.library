@@ -42,7 +42,9 @@ public class PeopleService {
         if (q.length() > 200) {
             q = q.substring(0, 200);
         }
-        return peopleRepository.findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCase(q, q, q);
+        return peopleRepository
+                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
+                        q, q, q, q);
     }
 
     public Person findById(int id) {

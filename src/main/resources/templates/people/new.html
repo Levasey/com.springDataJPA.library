@@ -20,6 +20,11 @@
             <input type="date" th:field="*{dateOfBirth}" id="date_of_birth"/>
         </div>
         <div class="field">
+            <label for="reader_card_number">Номер читательского билета</label>
+            <input type="text" th:field="*{readerCardNumber}" id="reader_card_number" autocomplete="off"/>
+            <div class="field-error" th:if="${#fields.hasErrors('readerCardNumber')}" th:errors="*{readerCardNumber}">ошибка</div>
+        </div>
+        <div class="field">
             <label for="email">Электронная почта</label>
             <input type="text" th:field="*{email}" id="email" autocomplete="email"/>
             <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">ошибка</div>

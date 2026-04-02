@@ -84,6 +84,7 @@ class PeopleControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name", "John")
                         .param("surname", "Doe")
+                        .param("readerCardNumber", "J-1001")
                         .param("email", "j@example.com")
                         .param("address", "USA, Boston, 123456"))
                 .andExpect(redirectedUrl("/people"));
@@ -108,6 +109,7 @@ class PeopleControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name", "Jane")
                         .param("surname", "Doe")
+                        .param("readerCardNumber", "J-2002")
                         .param("email", "jane@example.com")
                         .param("address", "USA, Boston, 654321")
                         .param("dateOfBirth", "1990-01-15"))

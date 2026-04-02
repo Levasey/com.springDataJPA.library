@@ -50,8 +50,9 @@ class PeopleServiceTest {
     @Test
     void searchPeople_delegatesToRepository() {
         List<Person> list = List.of(new Person());
-        when(peopleRepository.findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                "x", "x", "x")).thenReturn(list);
+        when(peopleRepository
+                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
+                        "x", "x", "x", "x")).thenReturn(list);
         assertSame(list, peopleService.searchPeople("x"));
     }
 
@@ -74,6 +75,7 @@ class PeopleServiceTest {
         form.setName("N");
         form.setSurname("S");
         form.setEmail("n@s.com");
+        form.setReaderCardNumber("CARD-N");
         form.setAddress("USA, Boston, 111111");
         peopleService.save(form);
         verify(peopleRepository).save(any(Person.class));
@@ -88,12 +90,14 @@ class PeopleServiceTest {
         form.setName("New");
         form.setSurname("Name");
         form.setEmail("e@example.com");
+        form.setReaderCardNumber("CARD-UPD");
         form.setAddress("USA, Boston, 123456");
 
         peopleService.update(3, form);
 
         assertEquals("New", existing.getName());
         assertEquals("Name", existing.getSurname());
+        assertEquals("CARD-UPD", existing.getReaderCardNumber());
         verify(peopleRepository, never()).save(any());
     }
 

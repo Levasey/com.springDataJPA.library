@@ -11,7 +11,7 @@
 
         <div th:if="${owner}">
             <p sec:authorize="hasRole('LIBRARIAN')"><span class="muted">Сейчас у:</span>
-                <span th:text="${owner.getName() + ' ' + owner.getSurname()}">читатель</span></p>
+                <span th:text="${owner.getName() + ' ' + owner.getSurname() + ' (билет ' + owner.getReaderCardNumber() + ')'}">читатель</span></p>
             <p sec:authorize="!hasRole('LIBRARIAN')" class="status-busy" style="margin:0">Занята</p>
             <form sec:authorize="hasRole('LIBRARIAN')" class="actions" style="margin-top:0" th:method="post"
                   th:action="@{/books/{bookId}/release(bookId=${book.getBookId()})}">
@@ -30,7 +30,7 @@
                     <label for="person">Читатель</label>
                     <select name="personId" id="person">
                         <option th:each="p : ${people}" th:value="${p.getPersonId()}"
-                                th:text="${p.getName() + ' ' + p.getSurname()}"></option>
+                                th:text="${p.getName() + ' ' + p.getSurname() + ' — ' + p.getReaderCardNumber()}"></option>
                     </select>
                 </div>
                 <input class="btn btn-primary" type="submit" value="Назначить"/>

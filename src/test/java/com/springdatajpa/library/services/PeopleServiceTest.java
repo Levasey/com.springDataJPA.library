@@ -36,6 +36,9 @@ class PeopleServiceTest {
     @Mock
     private ReaderWelcomeMailService readerWelcomeMailService;
 
+    @Mock
+    private CatalogPasswordSetupService catalogPasswordSetupService;
+
     @InjectMocks
     private PeopleService peopleService;
 
@@ -76,21 +79,41 @@ class PeopleServiceTest {
     }
 
     @Test
-    void save_delegatesToRepository_andRegistersCatalogUser() {
+    void save_registersInvitationAndMailsWhenPrimed() {
         when(peopleRepository.findByEmail("n@s.com")).thenReturn(Optional.empty());
         when(peopleRepository.findByReaderCardNumber("CARD-N")).thenReturn(Optional.empty());
+        when(catalogPasswordSetupService.createTokenForUsername("n@s.com")).thenReturn("raw-token");
+        when(readerWelcomeMailService.willSendWelcomeEmail()).thenReturn(true);
         PersonForm form = new PersonForm();
         form.setName("N");
         form.setSurname("S");
         form.setEmail("  N@s.com ");
         form.setReaderCardNumber("CARD-N");
         form.setAddress("USA, Boston, 111111");
-        form.setPassword("abcdefgh");
-        peopleService.save(form);
+        assertTrue(peopleService.save(form).isEmpty());
         verify(peopleRepository).save(any(Person.class));
-        verify(registrationService).registerCatalogUser("n@s.com", "abcdefgh");
+        verify(registrationService).registerCatalogUserWithInvitationPassword("n@s.com");
+        verify(catalogPasswordSetupService).createTokenForUsername("n@s.com");
         verify(readerWelcomeMailService)
-                .sendWelcomeIfConfigured("n@s.com", "n@s.com", "abcdefgh", "CARD-N");
+                .sendWelcomeIfConfigured("n@s.com", "n@s.com", "raw-token", "CARD-N");
+    }
+
+    @Test
+    void save_returnsHandoffLinkWhenMailNotPrimed() {
+        when(peopleRepository.findByEmail("n@s.com")).thenReturn(Optional.empty());
+        when(peopleRepository.findByReaderCardNumber("CARD-N")).thenReturn(Optional.empty());
+        when(catalogPasswordSetupService.createTokenForUsername("n@s.com")).thenReturn("raw-token");
+        when(readerWelcomeMailService.willSendWelcomeEmail()).thenReturn(false);
+        when(readerWelcomeMailService.buildSetupLinkForHandoff("raw-token")).thenReturn("/catalog/setup-password?token=raw-token");
+        PersonForm form = new PersonForm();
+        form.setName("N");
+        form.setSurname("S");
+        form.setEmail("n@s.com");
+        form.setReaderCardNumber("CARD-N");
+        form.setAddress("USA, Boston, 111111");
+        assertEquals(
+                Optional.of("/catalog/setup-password?token=raw-token"), peopleService.save(form));
+        verify(readerWelcomeMailService).sendWelcomeIfConfigured("n@s.com", "n@s.com", "raw-token", "CARD-N");
     }
 
     @Test
@@ -101,11 +124,11 @@ class PeopleServiceTest {
         form.setSurname("S");
         form.setEmail("x@y.z");
         form.setReaderCardNumber("C1");
-        form.setPassword("abcdefgh");
         assertThrows(ConflictException.class, () -> peopleService.save(form));
         verify(peopleRepository, never()).save(any());
         verifyNoInteractions(registrationService);
         verifyNoInteractions(readerWelcomeMailService);
+        verifyNoInteractions(catalogPasswordSetupService);
     }
 
     @Test
@@ -117,11 +140,11 @@ class PeopleServiceTest {
         form.setSurname("S");
         form.setEmail("a@b.c");
         form.setReaderCardNumber("TAKEN");
-        form.setPassword("abcdefgh");
         assertThrows(ConflictException.class, () -> peopleService.save(form));
         verify(peopleRepository, never()).save(any());
         verifyNoInteractions(registrationService);
         verifyNoInteractions(readerWelcomeMailService);
+        verifyNoInteractions(catalogPasswordSetupService);
     }
 
     @Test

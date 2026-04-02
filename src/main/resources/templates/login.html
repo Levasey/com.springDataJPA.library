@@ -13,6 +13,10 @@
         <p style="margin:0">Вы вышли из учётной записи.</p>
     </div>
 
+    <div th:if="${param.passwordSet}" class="panel" role="status" style="border-color: var(--success); margin-bottom:1rem">
+        <p style="margin:0">Пароль сохранён. Войдите с вашим email и новым паролем.</p>
+    </div>
+
     <form class="form-stack panel" style="max-width:22rem" th:action="@{/login}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
         <div class="field">

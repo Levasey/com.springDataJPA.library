@@ -12,3 +12,14 @@ spring:
     password: ${LIBRARY_DB_PASSWORD:your_password_here}
   jpa:
     show-sql: true
+
+# Для приветственного письма читателю со ссылкой на пароль:
+# library:
+#   app:
+#     public-base-url: "http://localhost:8080"
+#   mail:
+#     welcome-reader:
+#       enabled: true
+# spring:
+#   mail:
+#     host: …

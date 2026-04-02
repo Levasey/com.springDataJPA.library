@@ -9,15 +9,11 @@ import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Objects;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/people")
 public class PeopleController {
-
-    private static final int CATALOG_PASSWORD_MIN = 4;
-    private static final int CATALOG_PASSWORD_MAX = 128;
 
     private final PeopleService peopleService;
     private final RegistrationService registrationService;
@@ -57,8 +53,10 @@ public class PeopleController {
     }
 
     @PostMapping()
-    public String create(@ModelAttribute("personForm") @Valid PersonForm personForm, BindingResult bindingResult) {
-        validateNewReaderCatalogPassword(personForm, bindingResult);
+    public String create(
+            @ModelAttribute("personForm") @Valid PersonForm personForm,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes) {
         String catalogLogin = RegistrationService.catalogUsernameFromEmail(personForm.getEmail());
         String normCard = normalizeReaderCard(personForm.getReaderCardNumber());
         if (!bindingResult.hasErrors()) {
@@ -82,30 +80,14 @@ public class PeopleController {
         if (bindingResult.hasErrors()) {
             return "people/new";
         }
-        peopleService.save(personForm);
+        peopleService
+                .save(personForm)
+                .ifPresent(link -> redirectAttributes.addFlashAttribute("readerCatalogSetupLink", link));
         return "redirect:/people";
     }
 
     private static String normalizeReaderCard(String readerCard) {
         return readerCard == null ? "" : readerCard.trim();
-    }
-
-    private void validateNewReaderCatalogPassword(PersonForm form, BindingResult bindingResult) {
-        String p = form.getPassword() == null ? "" : form.getPassword();
-        String c = form.getConfirmPassword() == null ? "" : form.getConfirmPassword();
-        if (p.isBlank()) {
-            bindingResult.rejectValue("password", "required", "Укажите пароль для входа в каталог.");
-            return;
-        }
-        if (p.length() < CATALOG_PASSWORD_MIN || p.length() > CATALOG_PASSWORD_MAX) {
-            bindingResult.rejectValue(
-                    "password",
-                    "size",
-                    "Пароль: от " + CATALOG_PASSWORD_MIN + " до " + CATALOG_PASSWORD_MAX + " символов.");
-        }
-        if (!Objects.equals(p, c)) {
-            bindingResult.rejectValue("confirmPassword", "match", "Пароли не совпадают.");
-        }
     }
 
     @GetMapping("/{personId}/edit")

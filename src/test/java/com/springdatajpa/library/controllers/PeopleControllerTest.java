@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.never;
@@ -86,14 +87,13 @@ class PeopleControllerTest {
     @Test
     void create_valid_redirects() throws Exception {
         when(registrationService.usernameExists("j@example.com")).thenReturn(false);
+        when(peopleService.save(any(PersonForm.class))).thenReturn(Optional.empty());
         mockMvc.perform(post("/people")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name", "John")
                         .param("surname", "Doe")
                         .param("readerCardNumber", "J-1001")
                         .param("email", "j@example.com")
-                        .param("password", "secret12345")
-                        .param("confirmPassword", "secret12345")
                         .param("address", "USA, Boston, 123456"))
                 .andExpect(redirectedUrl("/people"));
         verify(peopleService).save(any(PersonForm.class));
@@ -108,8 +108,6 @@ class PeopleControllerTest {
                         .param("surname", "Doe")
                         .param("readerCardNumber", "J-1001")
                         .param("email", "j@example.com")
-                        .param("password", "secret12345")
-                        .param("confirmPassword", "secret12345")
                         .param("address", "USA, Boston, 123456"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("people/new"));
@@ -126,8 +124,6 @@ class PeopleControllerTest {
                         .param("surname", "Doe")
                         .param("readerCardNumber", "J-1001")
                         .param("email", "j@example.com")
-                        .param("password", "secret12345")
-                        .param("confirmPassword", "secret12345")
                         .param("address", "USA, Boston, 123456"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("people/new"));
@@ -146,28 +142,10 @@ class PeopleControllerTest {
                         .param("surname", "Doe")
                         .param("readerCardNumber", "J-1001")
                         .param("email", "j@example.com")
-                        .param("password", "secret12345")
-                        .param("confirmPassword", "secret12345")
                         .param("address", "USA, Boston, 123456"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("people/new"));
         verify(peopleService, never()).save(any(PersonForm.class));
-    }
-
-    @Test
-    void create_passwordMismatch_returnsForm() throws Exception {
-        mockMvc.perform(post("/people")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .param("name", "John")
-                        .param("surname", "Doe")
-                        .param("readerCardNumber", "J-1001")
-                        .param("email", "j@example.com")
-                        .param("password", "secret12345")
-                        .param("confirmPassword", "other99999")
-                        .param("address", "USA, Boston, 123456"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("people/new"));
-        verifyNoInteractions(peopleService);
     }
 
     @Test

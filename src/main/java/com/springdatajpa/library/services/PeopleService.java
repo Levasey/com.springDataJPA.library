@@ -28,16 +28,19 @@ public class PeopleService {
     private final PeopleRepository peopleRepository;
     private final BookRepository bookRepository;
     private final RegistrationService registrationService;
+    private final CatalogPasswordSetupService catalogPasswordSetupService;
     private final ReaderWelcomeMailService readerWelcomeMailService;
 
     public PeopleService(
             PeopleRepository peopleRepository,
             BookRepository bookRepository,
             RegistrationService registrationService,
+            CatalogPasswordSetupService catalogPasswordSetupService,
             ReaderWelcomeMailService readerWelcomeMailService) {
         this.peopleRepository = peopleRepository;
         this.bookRepository = bookRepository;
         this.registrationService = registrationService;
+        this.catalogPasswordSetupService = catalogPasswordSetupService;
         this.readerWelcomeMailService = readerWelcomeMailService;
     }
 
@@ -82,8 +85,12 @@ public class PeopleService {
         return owner.map(p -> excludePersonId == null || p.getPersonId() != excludePersonId).orElse(false);
     }
 
+    /**
+     * @return ссылку для установки пароля, если приветственное письмо не уйдёт (нет SMTP / выключено / нет public URL) —
+     *         её нужно передать читателю вручную
+     */
     @Transactional
-    public void save(PersonForm form) {
+    public Optional<String> save(PersonForm form) {
         String email = RegistrationService.catalogUsernameFromEmail(form.getEmail());
         String readerCard = normalizeReaderCard(form.getReaderCardNumber());
         assertUniqueEmailAndReaderCard(email, readerCard, null);
@@ -91,10 +98,14 @@ public class PeopleService {
         person.setEmail(email);
         person.setReaderCardNumber(readerCard);
         peopleRepository.save(person);
-        String plainPassword = form.getPassword();
-        registrationService.registerCatalogUser(email, plainPassword);
+        registrationService.registerCatalogUserWithInvitationPassword(email);
+        String rawToken = catalogPasswordSetupService.createTokenForUsername(email);
         scheduleAfterCommit(
-                () -> readerWelcomeMailService.sendWelcomeIfConfigured(email, email, plainPassword, readerCard));
+                () -> readerWelcomeMailService.sendWelcomeIfConfigured(email, email, rawToken, readerCard));
+        if (!readerWelcomeMailService.willSendWelcomeEmail()) {
+            return Optional.of(readerWelcomeMailService.buildSetupLinkForHandoff(rawToken));
+        }
+        return Optional.empty();
     }
 
     private static void scheduleAfterCommit(Runnable task) {

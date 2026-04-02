@@ -29,6 +29,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AccessDeniedHandler accessDeniedHandler) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/catalog/setup-password").permitAll()
                         .requestMatchers("/", "/login", "/logout", "/error",
                                 LibraryAccessDeniedHandler.FORBIDDEN_PAGE_PATH).permitAll()
                         .requestMatchers("/register").hasRole("LIBRARIAN")

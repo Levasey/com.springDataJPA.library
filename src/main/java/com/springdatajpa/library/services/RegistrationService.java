@@ -40,7 +40,15 @@ public class RegistrationService {
     }
 
     /**
-     * Учётная запись каталога с заданным паролем (при добавлении читателя библиотекарём).
+     * Учётная запись каталога со случайным паролем (читатель задаёт свой через ссылку из письма).
+     */
+    @Transactional
+    public void registerCatalogUserWithInvitationPassword(String username) {
+        registerCatalogUser(username, generateInitialPassword());
+    }
+
+    /**
+     * Учётная запись каталога с заданным паролем (например административная регистрация {@code /register}).
      */
     @Transactional
     public void registerCatalogUser(String username, String rawPassword) {

@@ -67,6 +67,23 @@ class RegistrationServiceTest {
     }
 
     @Test
+    void registerCatalogUserWithInvitationPassword_savesRandomEncodedPassword() {
+        when(passwordEncoder.encode(any())).thenAnswer(inv -> "HASH-" + inv.getArgument(0));
+        when(libraryUserRepository.existsByUsername("inv@test")).thenReturn(false);
+
+        registrationService.registerCatalogUserWithInvitationPassword("inv@test");
+
+        ArgumentCaptor<String> rawPass = ArgumentCaptor.forClass(String.class);
+        verify(passwordEncoder).encode(rawPass.capture());
+        assertEquals(16, rawPass.getValue().length());
+
+        ArgumentCaptor<LibraryUser> captor = ArgumentCaptor.forClass(LibraryUser.class);
+        verify(libraryUserRepository).save(captor.capture());
+        assertEquals("HASH-" + rawPass.getValue(), captor.getValue().getPassword());
+        assertEquals("inv@test", captor.getValue().getUsername());
+    }
+
+    @Test
     void catalogUsernameFromEmail_normalizes() {
         assertEquals("a@b.co", RegistrationService.catalogUsernameFromEmail("  A@B.Co "));
     }

@@ -32,8 +32,12 @@ logging:
   level:
     org.hibernate.SQL: ${SQL_LOG_LEVEL:WARN}
 
-# Письмо при создании читателя (пароль + билет): задайте spring.mail.* и enabled: true.
+# Публичный URL сайта (для ссылки «установить пароль» в письме читателю). Пример: http://localhost:8080
 library:
+  app:
+    public-base-url: ${LIBRARY_PUBLIC_BASE_URL:}
+  catalog-password-setup:
+    token-validity-hours: 168
   mail:
     welcome-reader:
       enabled: false

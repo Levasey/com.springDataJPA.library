@@ -9,7 +9,7 @@ public class ReaderChangePasswordForm {
     private String currentPassword;
 
     @NotBlank(message = "Укажите новый пароль.")
-    @Size(min = 4, max = 128, message = "Пароль: от 4 до 128 символов.")
+    @Size(min = 10, max = 128, message = "Пароль: от 10 до 128 символов.")
     private String newPassword;
 
     @NotBlank(message = "Повторите новый пароль.")

@@ -2,6 +2,7 @@ package com.springdatajpa.library.services;
 
 import com.springdatajpa.library.exception.ConflictException;
 import com.springdatajpa.library.models.LibraryUser;
+import com.springdatajpa.library.models.UserRole;
 import com.springdatajpa.library.repositories.LibraryUserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -63,14 +64,15 @@ public class RegistrationService {
     }
 
     /**
-     * Создаёт пользователя с новым паролем. Пароль задаётся только здесь, при создании записи.
+     * Создаёт учётную запись библиотекаря с начальным паролем (форма {@code /register}).
      *
      * @return открытый пароль (однократно для передачи пользователю; в БД сохраняется только хеш)
      */
     @Transactional
     public String register(String username) {
         String rawPassword = generateInitialPassword();
-        LibraryUser user = new LibraryUser(username, passwordEncoder.encode(rawPassword), true);
+        LibraryUser user =
+                new LibraryUser(username, passwordEncoder.encode(rawPassword), true, UserRole.LIBRARIAN);
         libraryUserRepository.save(user);
         return rawPassword;
     }

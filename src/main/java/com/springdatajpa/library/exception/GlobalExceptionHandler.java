@@ -83,7 +83,8 @@ public class GlobalExceptionHandler {
     public ModelAndView handleDataIntegrity(DataIntegrityViolationException ex) {
         log.debug("Data integrity violation", ex);
         ModelAndView mv = new ModelAndView("error/conflict");
-        mv.addObject("message", "This record conflicts with existing data (for example, the email may already be in use).");
+        mv.addObject("message",
+                "Запись конфликтует с уже имеющимися данными (например, такой email может быть уже занят).");
         return mv;
     }
 
@@ -98,7 +99,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ModelAndView handleBindingOrNotValid(Exception ex) {
-        String message = "Invalid input. Please check the form and try again.";
+        String message = "Некорректные данные. Проверьте форму и попробуйте снова.";
         if (ex instanceof MethodArgumentNotValidException manve && manve.getBindingResult().getFieldError() != null) {
             message = manve.getBindingResult().getFieldError().getDefaultMessage();
         } else if (ex instanceof BindException be && be.getBindingResult().getFieldError() != null) {
@@ -116,7 +117,7 @@ public class GlobalExceptionHandler {
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.joining(" "));
         if (message.isBlank()) {
-            message = "Invalid input.";
+            message = "Некорректные данные.";
         }
         ModelAndView mv = new ModelAndView("error/bad-request");
         mv.addObject("message", message);
@@ -177,7 +178,7 @@ public class GlobalExceptionHandler {
     public ModelAndView handleUnexpected(Exception ex) {
         log.error("Unhandled exception in MVC controller", ex);
         ModelAndView mv = new ModelAndView("error/500");
-        mv.addObject("message", "Something went wrong. Please try again later.");
+        mv.addObject("message", "Произошла ошибка. Попробуйте позже.");
         return mv;
     }
 }

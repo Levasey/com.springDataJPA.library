@@ -116,6 +116,11 @@ public class PeopleController {
                     "duplicate.readerCard",
                     "Этот номер читательского билета уже используется.");
         }
+        if (!bindingResult.hasErrors() && !catalogLogin.isBlank()
+                && peopleService.isCatalogLoginTakenBySomeoneElse(id, catalogLogin)) {
+            bindingResult.rejectValue(
+                    "email", "duplicate.catalog", "Этот email уже используется для входа в каталог.");
+        }
         if (bindingResult.hasErrors()) {
             model.addAttribute("personId", id);
             return "people/edit";

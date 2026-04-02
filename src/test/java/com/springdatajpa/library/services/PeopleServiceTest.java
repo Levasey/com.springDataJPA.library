@@ -4,8 +4,11 @@ import com.springdatajpa.library.dto.PersonForm;
 import com.springdatajpa.library.exception.ConflictException;
 import com.springdatajpa.library.exception.ResourceNotFoundException;
 import com.springdatajpa.library.models.Book;
+import com.springdatajpa.library.models.LibraryUser;
 import com.springdatajpa.library.models.Person;
+import com.springdatajpa.library.models.UserRole;
 import com.springdatajpa.library.repositories.BookRepository;
+import com.springdatajpa.library.repositories.LibraryUserRepository;
 import com.springdatajpa.library.repositories.PeopleRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +32,9 @@ class PeopleServiceTest {
 
     @Mock
     private BookRepository bookRepository;
+
+    @Mock
+    private LibraryUserRepository libraryUserRepository;
 
     @Mock
     private RegistrationService registrationService;
@@ -166,6 +172,7 @@ class PeopleServiceTest {
     void update_appliesFormToManagedPerson() {
         Person existing = new Person();
         existing.setPersonId(3);
+        existing.setEmail("e@example.com");
         when(peopleRepository.findById(3)).thenReturn(Optional.of(existing));
         when(peopleRepository.findByEmail("e@example.com")).thenReturn(Optional.of(existing));
         when(peopleRepository.findByReaderCardNumber("CARD-UPD")).thenReturn(Optional.of(existing));
@@ -183,6 +190,73 @@ class PeopleServiceTest {
         assertEquals("CARD-UPD", existing.getReaderCardNumber());
         assertEquals("e@example.com", existing.getEmail());
         verify(peopleRepository, never()).save(any());
+        verifyNoInteractions(libraryUserRepository);
+    }
+
+    @Test
+    void update_renamesReaderCatalogUsernameWhenEmailChanges() {
+        Person existing = new Person();
+        existing.setPersonId(3);
+        existing.setEmail("old@reader.test");
+        when(peopleRepository.findById(3)).thenReturn(Optional.of(existing));
+        when(peopleRepository.findByEmail("new@reader.test")).thenReturn(Optional.of(existing));
+        when(peopleRepository.findByReaderCardNumber("R1")).thenReturn(Optional.of(existing));
+        LibraryUser catalog = new LibraryUser("old@reader.test", "hash", true, UserRole.USER);
+        catalog.setId(42L);
+        when(libraryUserRepository.findByUsername("old@reader.test")).thenReturn(Optional.of(catalog));
+        when(libraryUserRepository.existsByUsername("new@reader.test")).thenReturn(false);
+        PersonForm form = new PersonForm();
+        form.setName("N");
+        form.setSurname("S");
+        form.setEmail("new@reader.test");
+        form.setReaderCardNumber("R1");
+        form.setAddress("Addr");
+
+        peopleService.update(3, form);
+
+        assertEquals("new@reader.test", catalog.getUsername());
+        assertEquals("new@reader.test", existing.getEmail());
+    }
+
+    @Test
+    void update_throwsWhenNewCatalogLoginAlreadyUsed() {
+        Person existing = new Person();
+        existing.setPersonId(3);
+        existing.setEmail("old@x.test");
+        when(peopleRepository.findById(3)).thenReturn(Optional.of(existing));
+        when(peopleRepository.findByEmail("taken@x.test")).thenReturn(Optional.of(existing));
+        when(peopleRepository.findByReaderCardNumber("R1")).thenReturn(Optional.of(existing));
+        LibraryUser catalog = new LibraryUser("old@x.test", "hash", true, UserRole.USER);
+        when(libraryUserRepository.findByUsername("old@x.test")).thenReturn(Optional.of(catalog));
+        when(libraryUserRepository.existsByUsername("taken@x.test")).thenReturn(true);
+        PersonForm form = new PersonForm();
+        form.setName("N");
+        form.setSurname("S");
+        form.setEmail("taken@x.test");
+        form.setReaderCardNumber("R1");
+        form.setAddress("Addr");
+
+        assertThrows(ConflictException.class, () -> peopleService.update(3, form));
+    }
+
+    @Test
+    void isCatalogLoginTakenBySomeoneElse_falseWhenUnchanged() {
+        Person existing = new Person();
+        existing.setPersonId(5);
+        existing.setEmail("same@x.test");
+        when(peopleRepository.findById(5)).thenReturn(Optional.of(existing));
+        assertFalse(peopleService.isCatalogLoginTakenBySomeoneElse(5, "same@x.test"));
+        verifyNoInteractions(libraryUserRepository);
+    }
+
+    @Test
+    void isCatalogLoginTakenBySomeoneElse_trueWhenNewLoginExists() {
+        Person existing = new Person();
+        existing.setPersonId(5);
+        existing.setEmail("old@x.test");
+        when(peopleRepository.findById(5)).thenReturn(Optional.of(existing));
+        when(libraryUserRepository.existsByUsername("new@x.test")).thenReturn(true);
+        assertTrue(peopleService.isCatalogLoginTakenBySomeoneElse(5, "new@x.test"));
     }
 
     @Test

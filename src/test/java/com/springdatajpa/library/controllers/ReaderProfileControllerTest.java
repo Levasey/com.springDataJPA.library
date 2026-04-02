@@ -82,14 +82,14 @@ class ReaderProfileControllerTest {
 
         ReaderChangePasswordForm form = new ReaderChangePasswordForm();
         form.setCurrentPassword("old");
-        form.setNewPassword("new1");
-        form.setConfirmPassword("new1");
+        form.setNewPassword("new-long-pass");
+        form.setConfirmPassword("new-long-pass");
         BindingResult bindingResult = new BeanPropertyBindingResult(form, "form");
 
         String outcome = controller.changePasswordSubmit(auth, form, bindingResult);
 
         assertEquals("redirect:/me?passwordChanged", outcome);
         assertTrue(bindingResult.getErrorCount() == 0);
-        verify(readerCatalogPasswordService).changePassword(eq("reader@test"), eq("old"), eq("new1"));
+        verify(readerCatalogPasswordService).changePassword(eq("reader@test"), eq("old"), eq("new-long-pass"));
     }
 }

@@ -2,6 +2,7 @@ package com.springdatajpa.library.services;
 
 import com.springdatajpa.library.exception.ConflictException;
 import com.springdatajpa.library.models.LibraryUser;
+import com.springdatajpa.library.models.UserRole;
 import com.springdatajpa.library.repositories.LibraryUserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +43,7 @@ class RegistrationServiceTest {
         verify(libraryUserRepository).save(captor.capture());
         assertEquals("HASH-" + plain, captor.getValue().getPassword());
         assertEquals("newreader", captor.getValue().getUsername());
+        assertEquals(UserRole.LIBRARIAN, captor.getValue().getRole());
     }
 
     @Test

@@ -9,7 +9,7 @@ public class CatalogPasswordSetupForm {
     private String token;
 
     @NotBlank(message = "Укажите пароль.")
-    @Size(min = 4, max = 128, message = "Пароль: от 4 до 128 символов.")
+    @Size(min = 10, max = 128, message = "Пароль: от 10 до 128 символов.")
     private String password;
 
     @NotBlank(message = "Повторите пароль.")

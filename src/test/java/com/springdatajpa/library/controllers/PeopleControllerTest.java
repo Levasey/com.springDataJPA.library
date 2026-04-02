@@ -175,6 +175,24 @@ class PeopleControllerTest {
     }
 
     @Test
+    void update_duplicateCatalogEmail_returnsForm() throws Exception {
+        when(peopleService.isEmailTakenBySomeoneElse("new@example.com", 2)).thenReturn(false);
+        when(peopleService.isReaderCardTakenBySomeoneElse("J-2002", 2)).thenReturn(false);
+        when(peopleService.isCatalogLoginTakenBySomeoneElse(2, "new@example.com")).thenReturn(true);
+        mockMvc.perform(patch("/people/2")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("name", "Jane")
+                        .param("surname", "Doe")
+                        .param("readerCardNumber", "J-2002")
+                        .param("email", "new@example.com")
+                        .param("address", "USA, Boston, 654321")
+                        .param("dateOfBirth", "1990-01-15"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("people/edit"));
+        verify(peopleService, never()).update(anyInt(), any(PersonForm.class));
+    }
+
+    @Test
     void update_duplicateReaderCard_returnsForm() throws Exception {
         when(peopleService.isReaderCardTakenBySomeoneElse("J-2002", 2)).thenReturn(true);
         mockMvc.perform(patch("/people/2")

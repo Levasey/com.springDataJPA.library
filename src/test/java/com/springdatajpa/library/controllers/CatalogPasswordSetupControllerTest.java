@@ -51,10 +51,10 @@ class CatalogPasswordSetupControllerTest {
         mockMvc.perform(post("/catalog/setup-password")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("token", "abc")
-                        .param("password", "secretpass")
-                        .param("confirmPassword", "secretpass"))
+                        .param("password", "valid10char")
+                        .param("confirmPassword", "valid10char"))
                 .andExpect(redirectedUrl("/login?passwordSet"));
-        verify(catalogPasswordSetupService).setPasswordFromToken("abc", "secretpass");
+        verify(catalogPasswordSetupService).setPasswordFromToken("abc", "valid10char");
     }
 
     @Test
@@ -62,7 +62,7 @@ class CatalogPasswordSetupControllerTest {
         mockMvc.perform(post("/catalog/setup-password")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("token", "abc")
-                        .param("password", "secretpass")
+                        .param("password", "valid10char")
                         .param("confirmPassword", "other"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("catalog/setup-password"));

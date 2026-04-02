@@ -4,8 +4,11 @@ import com.springdatajpa.library.dto.PersonForm;
 import com.springdatajpa.library.exception.ConflictException;
 import com.springdatajpa.library.exception.ResourceNotFoundException;
 import com.springdatajpa.library.models.Book;
+import com.springdatajpa.library.models.LibraryUser;
 import com.springdatajpa.library.models.Person;
+import com.springdatajpa.library.models.UserRole;
 import com.springdatajpa.library.repositories.BookRepository;
+import com.springdatajpa.library.repositories.LibraryUserRepository;
 import com.springdatajpa.library.repositories.PeopleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +30,7 @@ public class PeopleService {
 
     private final PeopleRepository peopleRepository;
     private final BookRepository bookRepository;
+    private final LibraryUserRepository libraryUserRepository;
     private final RegistrationService registrationService;
     private final CatalogPasswordSetupService catalogPasswordSetupService;
     private final ReaderWelcomeMailService readerWelcomeMailService;
@@ -34,11 +38,13 @@ public class PeopleService {
     public PeopleService(
             PeopleRepository peopleRepository,
             BookRepository bookRepository,
+            LibraryUserRepository libraryUserRepository,
             RegistrationService registrationService,
             CatalogPasswordSetupService catalogPasswordSetupService,
             ReaderWelcomeMailService readerWelcomeMailService) {
         this.peopleRepository = peopleRepository;
         this.bookRepository = bookRepository;
+        this.libraryUserRepository = libraryUserRepository;
         this.registrationService = registrationService;
         this.catalogPasswordSetupService = catalogPasswordSetupService;
         this.readerWelcomeMailService = readerWelcomeMailService;
@@ -96,6 +102,25 @@ public class PeopleService {
     }
 
     /**
+     * Новый нормализованный email уже занят другой учёткой каталога — нельзя присвоить читателю при редактировании.
+     *
+     * @param excludePersonId id читателя в карточке
+     * @param newNormalizedEmail целевой email после нормализации
+     */
+    public boolean isCatalogLoginTakenBySomeoneElse(int excludePersonId, String newNormalizedEmail) {
+        if (!StringUtils.hasText(newNormalizedEmail)) {
+            return false;
+        }
+        Person person = peopleRepository.findById(excludePersonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Person not found: id=" + excludePersonId));
+        String previousLogin = RegistrationService.catalogUsernameFromEmail(person.getEmail());
+        if (newNormalizedEmail.equals(previousLogin)) {
+            return false;
+        }
+        return libraryUserRepository.existsByUsername(newNormalizedEmail);
+    }
+
+    /**
      * @return ссылку для установки пароля, если приветственное письмо не уйдёт (нет SMTP / выключено / нет public URL) —
      *         её нужно передать читателю вручную
      */
@@ -135,12 +160,28 @@ public class PeopleService {
     public void update(int id, PersonForm form) {
         Person person = peopleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found: id=" + id));
+        String previousCatalogLogin = RegistrationService.catalogUsernameFromEmail(person.getEmail());
         String email = RegistrationService.catalogUsernameFromEmail(form.getEmail());
         String readerCard = normalizeReaderCard(form.getReaderCardNumber());
         assertUniqueEmailAndReaderCard(email, readerCard, id);
+        syncReaderCatalogUsernameIfEmailChanged(previousCatalogLogin, email);
         form.applyTo(person);
         person.setEmail(email);
         person.setReaderCardNumber(readerCard);
+    }
+
+    private void syncReaderCatalogUsernameIfEmailChanged(String previousLogin, String newLogin) {
+        if (!StringUtils.hasText(newLogin) || newLogin.equals(previousLogin)) {
+            return;
+        }
+        LibraryUser readerAccount = libraryUserRepository.findByUsername(previousLogin).orElse(null);
+        if (readerAccount == null || readerAccount.getRole() != UserRole.USER) {
+            return;
+        }
+        if (libraryUserRepository.existsByUsername(newLogin)) {
+            throw new ConflictException("Этот email уже используется для входа в каталог.");
+        }
+        readerAccount.setUsername(newLogin);
     }
 
     private static String normalizeReaderCard(String readerCard) {

@@ -51,17 +51,36 @@ class PeopleRepositoryTest {
         peopleRepository.flush();
 
         List<Person> byName = peopleRepository
-                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
-                        "иван", "иван", "иван", "иван");
+                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
+                        "иван", "иван", "иван", "иван", "иван");
         List<Person> byEmail = peopleRepository
-                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
-                        "example", "example", "example", "example");
+                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
+                        "example", "example", "example", "example", "example");
         List<Person> byCard = peopleRepository
-                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
-                        "READER-002", "READER-002", "READER-002", "READER-002");
+                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
+                        "READER-002", "READER-002", "READER-002", "READER-002", "READER-002");
 
         assertFalse(byName.isEmpty());
         assertFalse(byEmail.isEmpty());
         assertFalse(byCard.isEmpty());
+    }
+
+    @Test
+    void search_matchesPatronymic() {
+        Person p = new Person();
+        p.setName("Иван");
+        p.setSurname("Петров");
+        p.setPatronymic("Сергеевич");
+        p.setEmail("ivan2@example.com");
+        p.setReaderCardNumber("READER-PAT-01");
+        p.setAddress("Addr");
+        peopleRepository.save(p);
+        peopleRepository.flush();
+
+        List<Person> found = peopleRepository
+                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
+                        "сергеев", "сергеев", "сергеев", "сергеев", "сергеев");
+
+        assertFalse(found.isEmpty());
     }
 }

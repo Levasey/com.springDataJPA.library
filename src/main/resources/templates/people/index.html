@@ -6,7 +6,7 @@
     <ul class="card-list">
         <li th:each="person : ${people}">
             <a th:href="@{/people/{personId}(personId=${person.getPersonId()})}"
-               th:text="${person.getName() + ', ' + person.getSurname()}">читатель</a>
+               th:text="${person.fullName}">читатель</a>
         </li>
     </ul>
     <div class="actions">

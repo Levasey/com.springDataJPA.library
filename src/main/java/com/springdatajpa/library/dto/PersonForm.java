@@ -18,6 +18,9 @@ public class PersonForm {
     @Size(min = 2, max = 30, message = "Surname should be between 2 and 30 characters")
     private String surname;
 
+    @Size(max = 30, message = "Patronymic should be at most 30 characters")
+    private String patronymic;
+
     @NotBlank(message = "Email shouldn't be empty")
     @Email(message = "Email should be valid")
     private String email;
@@ -35,6 +38,7 @@ public class PersonForm {
         PersonForm form = new PersonForm();
         form.setName(person.getName());
         form.setSurname(person.getSurname());
+        form.setPatronymic(person.getPatronymic());
         form.setEmail(person.getEmail());
         form.setReaderCardNumber(person.getReaderCardNumber());
         form.setAddress(person.getAddress());
@@ -43,12 +47,13 @@ public class PersonForm {
     }
 
     public Person toNewPerson() {
-        return new Person(name, surname, email, readerCardNumber, address, dateOfBirth);
+        return new Person(name, surname, patronymic, email, readerCardNumber, address, dateOfBirth);
     }
 
     public void applyTo(Person person) {
         person.setName(name);
         person.setSurname(surname);
+        person.setPatronymic(patronymic);
         person.setEmail(email);
         person.setReaderCardNumber(readerCardNumber);
         person.setAddress(address);
@@ -69,6 +74,14 @@ public class PersonForm {
 
     public void setSurname(String surname) {
         this.surname = surname;
+    }
+
+    public String getPatronymic() {
+        return patronymic;
+    }
+
+    public void setPatronymic(String patronymic) {
+        this.patronymic = patronymic;
     }
 
     public String getEmail() {

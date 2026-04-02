@@ -7,7 +7,7 @@
     <form class="form-stack panel" style="max-width:100%;margin:0 0 1.5rem" th:method="GET" th:action="@{/people/search}">
         <div class="field">
             <label for="people-q">Запрос</label>
-            <input type="text" id="people-q" name="q" th:value="${q}" autocomplete="off" placeholder="Имя, фамилия, email, номер билета…"/>
+            <input type="text" id="people-q" name="q" th:value="${q}" autocomplete="off" placeholder="Имя, фамилия, отчество, email, номер билета…"/>
         </div>
         <div class="actions" style="margin-top:0">
             <input class="btn btn-primary" type="submit" value="Искать"/>
@@ -20,7 +20,7 @@
             <p style="margin:0 0 0.35rem">
                 <a th:href="@{/people/{personId}(personId=${person.getPersonId()})}"
                    class="result-title-link"
-                   th:text="${person.getName() + ' ' + person.getSurname()}">читатель</a>
+                   th:text="${person.fullName}">читатель</a>
                 <span class="muted" th:text="| · билет ${person.getReaderCardNumber()} · ${person.getEmail()}|"></span>
             </p>
             <div class="actions" style="margin-top:0.5rem">

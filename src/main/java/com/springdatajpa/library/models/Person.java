@@ -27,6 +27,10 @@ public class Person {
     @Column(name = "surname")
     private String surname;
 
+    @Size(max = 30, message = "Patronymic should be at most 30 characters")
+    @Column(name = "patronymic", length = 30)
+    private String patronymic;
+
     @NotBlank(message = "Email shouldn't be empty")
     @Email(message = "Email should be valid")
     @Column(name = "email")
@@ -49,10 +53,11 @@ public class Person {
     public Person() {
     }
 
-    public Person(String name, String surname, String email, String readerCardNumber, String address,
-                  LocalDate dateOfBirth) {
+    public Person(String name, String surname, String patronymic, String email, String readerCardNumber,
+                  String address, LocalDate dateOfBirth) {
         this.name = name;
         this.surname = surname;
+        this.patronymic = patronymic;
         this.email = email;
         this.readerCardNumber = readerCardNumber;
         this.address = address;
@@ -81,6 +86,24 @@ public class Person {
 
     public void setSurname(String surname) {
         this.surname = surname;
+    }
+
+    public String getPatronymic() {
+        return patronymic;
+    }
+
+    public void setPatronymic(String patronymic) {
+        this.patronymic = patronymic;
+    }
+
+    /**
+     * Фамилия, имя и отчество в одной строке (отчество опускается, если не задано).
+     */
+    public String getFullName() {
+        if (patronymic != null && !patronymic.isBlank()) {
+            return name + " " + patronymic + " " + surname;
+        }
+        return name + " " + surname;
     }
 
     public String getEmail() {
@@ -129,6 +152,7 @@ public class Person {
                 "personId=" + personId +
                 ", name='" + name + '\'' +
                 ", surname='" + surname + '\'' +
+                ", patronymic='" + patronymic + '\'' +
                 ", email='" + email + '\'' +
                 ", readerCardNumber='" + readerCardNumber + '\'' +
                 ", address='" + address + '\'' +

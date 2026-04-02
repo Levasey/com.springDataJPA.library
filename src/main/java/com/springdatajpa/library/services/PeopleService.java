@@ -43,8 +43,8 @@ public class PeopleService {
             q = q.substring(0, 200);
         }
         return peopleRepository
-                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
-                        q, q, q, q);
+                .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrPatronymicContainingIgnoreCaseOrEmailContainingIgnoreCaseOrReaderCardNumberContainingIgnoreCase(
+                        q, q, q, q, q);
     }
 
     public Person findById(int id) {

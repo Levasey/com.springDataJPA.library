@@ -16,6 +16,11 @@
             <div class="field-error" th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}">ошибка</div>
         </div>
         <div class="field">
+            <label for="patronymic">Отчество</label>
+            <input type="text" th:field="*{patronymic}" id="patronymic" autocomplete="additional-name"/>
+            <div class="field-error" th:if="${#fields.hasErrors('patronymic')}" th:errors="*{patronymic}">ошибка</div>
+        </div>
+        <div class="field">
             <label for="date_of_birth">Дата рождения</label>
             <input type="date" th:field="*{dateOfBirth}" id="date_of_birth"/>
         </div>

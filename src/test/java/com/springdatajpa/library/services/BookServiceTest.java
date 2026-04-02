@@ -210,10 +210,22 @@ class BookServiceTest {
     }
 
     @Test
+    void assign_throwsWhenBookAlreadyIssued() {
+        Person person = new Person();
+        person.setPersonId(10);
+        Book book = new Book("T", "A", 2000);
+        book.setOwner(new Person());
+        when(peopleRepository.findById(10)).thenReturn(Optional.of(person));
+        when(bookRepository.findById(8)).thenReturn(Optional.of(book));
+        assertThrows(BadRequestException.class, () -> bookService.assign(8, 10));
+    }
+
+    @Test
     void assign_setsOwnerAndTakenAtWhenBothExist() {
         Person person = new Person();
         person.setPersonId(10);
         Book book = new Book("T", "A", 2000);
+        book.setOwner(null);
         when(peopleRepository.findById(10)).thenReturn(Optional.of(person));
         when(bookRepository.findById(8)).thenReturn(Optional.of(book));
 

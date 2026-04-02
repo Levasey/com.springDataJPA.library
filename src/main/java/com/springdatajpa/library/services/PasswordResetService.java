@@ -4,9 +4,8 @@ import com.springdatajpa.library.models.LibraryUser;
 import com.springdatajpa.library.models.UserRole;
 import com.springdatajpa.library.repositories.LibraryUserRepository;
 import org.springframework.stereotype.Service;
+import com.springdatajpa.library.support.TransactionCallbacks;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 public class PasswordResetService {
@@ -41,19 +40,7 @@ public class PasswordResetService {
             return;
         }
         String rawToken = catalogPasswordSetupService.createTokenForUsername(catalogKey);
-        scheduleAfterCommit(() -> passwordResetMailService.sendPasswordResetIfConfigured(catalogKey, rawToken));
-    }
-
-    private static void scheduleAfterCommit(Runnable task) {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    task.run();
-                }
-            });
-        } else {
-            task.run();
-        }
+        TransactionCallbacks.runAfterCommit(
+                () -> passwordResetMailService.sendPasswordResetIfConfigured(catalogKey, rawToken));
     }
 }

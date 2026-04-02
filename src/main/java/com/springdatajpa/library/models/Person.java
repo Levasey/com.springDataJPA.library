@@ -97,13 +97,13 @@ public class Person {
     }
 
     /**
-     * Фамилия, имя и отчество в одной строке (отчество опускается, если не задано).
+     * ФИО в порядке «фамилия имя отчество» (отчество опускается, если не задано).
      */
     public String getFullName() {
         if (patronymic != null && !patronymic.isBlank()) {
-            return name + " " + patronymic + " " + surname;
+            return surname + " " + name + " " + patronymic;
         }
-        return name + " " + surname;
+        return surname + " " + name;
     }
 
     public String getEmail() {

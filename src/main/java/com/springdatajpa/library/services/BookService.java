@@ -56,7 +56,7 @@ public class BookService {
 
     public Book findOne(int id) {
         return bookRepository.findWithOwnerById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found: id=" + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Книга не найдена (id=" + id + ")."));
     }
 
     @Transactional
@@ -67,14 +67,14 @@ public class BookService {
     @Transactional
     public void update(int id, BookForm form) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found: id=" + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Книга не найдена (id=" + id + ")."));
         form.applyTo(book);
     }
 
     @Transactional
     public void delete(int id) {
         if (!bookRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Book not found: id=" + id);
+            throw new ResourceNotFoundException("Книга не найдена (id=" + id + ").");
         }
         bookRepository.deleteById(id);
     }
@@ -82,7 +82,7 @@ public class BookService {
     @Transactional
     public void release(int id) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found: id=" + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Книга не найдена (id=" + id + ")."));
         book.setOwner(null);
         book.setTakenAt(null);
     }
@@ -90,12 +90,15 @@ public class BookService {
     @Transactional
     public void assign(int bookId, int personId) {
         if (personId <= 0) {
-            throw new BadRequestException("Choose a reader to assign the book.");
+            throw new BadRequestException("Выберите читателя для выдачи книги.");
         }
         Person person = peopleRepository.findById(personId)
-                .orElseThrow(() -> new ResourceNotFoundException("Person not found: id=" + personId));
+                .orElseThrow(() -> new ResourceNotFoundException("Читатель не найден (id=" + personId + ")."));
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found: id=" + bookId));
+                .orElseThrow(() -> new ResourceNotFoundException("Книга не найдена (id=" + bookId + ")."));
+        if (book.getOwner() != null) {
+            throw new BadRequestException("Книга уже выдана. Сначала оформите возврат.");
+        }
         book.setOwner(person);
         book.setTakenAt(LocalDateTime.now());
     }

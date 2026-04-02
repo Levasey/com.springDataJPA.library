@@ -284,23 +284,59 @@ class PeopleServiceTest {
 
     @Test
     void delete_delegatesToRepository() {
-        when(peopleRepository.existsById(9)).thenReturn(true);
+        Person p = new Person();
+        p.setPersonId(9);
+        p.setEmail("gone@reader.test");
+        when(peopleRepository.findById(9)).thenReturn(Optional.of(p));
         when(bookRepository.existsByOwnerPersonId(9)).thenReturn(false);
+        when(libraryUserRepository.findByUsername("gone@reader.test")).thenReturn(Optional.empty());
         peopleService.delete(9);
         verify(peopleRepository).deleteById(9);
     }
 
     @Test
+    void delete_removesReaderCatalogAccount() {
+        Person p = new Person();
+        p.setPersonId(9);
+        p.setEmail("Reader@CATALOG.TEST");
+        LibraryUser catalog = new LibraryUser("reader@catalog.test", "h", true, UserRole.USER);
+        when(peopleRepository.findById(9)).thenReturn(Optional.of(p));
+        when(bookRepository.existsByOwnerPersonId(9)).thenReturn(false);
+        when(libraryUserRepository.findByUsername("reader@catalog.test")).thenReturn(Optional.of(catalog));
+        peopleService.delete(9);
+        verify(libraryUserRepository).delete(catalog);
+        verify(peopleRepository).deleteById(9);
+    }
+
+    @Test
+    void delete_doesNotRemoveLibrarianAccountWithSameLogin() {
+        Person p = new Person();
+        p.setPersonId(9);
+        p.setEmail("lib@x.test");
+        LibraryUser catalog = new LibraryUser("lib@x.test", "h", true, UserRole.LIBRARIAN);
+        when(peopleRepository.findById(9)).thenReturn(Optional.of(p));
+        when(bookRepository.existsByOwnerPersonId(9)).thenReturn(false);
+        when(libraryUserRepository.findByUsername("lib@x.test")).thenReturn(Optional.of(catalog));
+        peopleService.delete(9);
+        verify(libraryUserRepository, never()).delete(any());
+        verify(peopleRepository).deleteById(9);
+    }
+
+    @Test
     void delete_throwsConflictWhenPersonHasBooks() {
-        when(peopleRepository.existsById(9)).thenReturn(true);
+        Person p = new Person();
+        p.setPersonId(9);
+        p.setEmail("x@y.z");
+        when(peopleRepository.findById(9)).thenReturn(Optional.of(p));
         when(bookRepository.existsByOwnerPersonId(9)).thenReturn(true);
         assertThrows(ConflictException.class, () -> peopleService.delete(9));
         verify(peopleRepository, never()).deleteById(anyInt());
+        verify(libraryUserRepository, never()).delete(any());
     }
 
     @Test
     void delete_throwsWhenMissing() {
-        when(peopleRepository.existsById(9)).thenReturn(false);
+        when(peopleRepository.findById(9)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> peopleService.delete(9));
         verify(peopleRepository, never()).deleteById(anyInt());
     }

@@ -11,9 +11,8 @@ import com.springdatajpa.library.repositories.BookRepository;
 import com.springdatajpa.library.repositories.LibraryUserRepository;
 import com.springdatajpa.library.repositories.PeopleRepository;
 import org.springframework.stereotype.Service;
+import com.springdatajpa.library.support.TransactionCallbacks;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
@@ -69,7 +68,7 @@ public class PeopleService {
 
     public Person findById(int id) {
         return peopleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Person not found: id=" + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Читатель не найден (id=" + id + ")."));
     }
 
     /**
@@ -112,7 +111,7 @@ public class PeopleService {
             return false;
         }
         Person person = peopleRepository.findById(excludePersonId)
-                .orElseThrow(() -> new ResourceNotFoundException("Person not found: id=" + excludePersonId));
+                .orElseThrow(() -> new ResourceNotFoundException("Читатель не найден (id=" + excludePersonId + ")."));
         String previousLogin = RegistrationService.catalogUsernameFromEmail(person.getEmail());
         if (newNormalizedEmail.equals(previousLogin)) {
             return false;
@@ -135,7 +134,7 @@ public class PeopleService {
         peopleRepository.save(person);
         registrationService.registerCatalogUserWithInvitationPassword(email);
         String rawToken = catalogPasswordSetupService.createTokenForUsername(email);
-        scheduleAfterCommit(
+        TransactionCallbacks.runAfterCommit(
                 () -> readerWelcomeMailService.sendWelcomeIfConfigured(email, email, rawToken, readerCard));
         if (!readerWelcomeMailService.willSendWelcomeEmail()) {
             return Optional.of(readerWelcomeMailService.buildSetupLinkForHandoff(rawToken));
@@ -143,23 +142,10 @@ public class PeopleService {
         return Optional.empty();
     }
 
-    private static void scheduleAfterCommit(Runnable task) {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    task.run();
-                }
-            });
-        } else {
-            task.run();
-        }
-    }
-
     @Transactional
     public void update(int id, PersonForm form) {
         Person person = peopleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Person not found: id=" + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Читатель не найден (id=" + id + ")."));
         String previousCatalogLogin = RegistrationService.catalogUsernameFromEmail(person.getEmail());
         String email = RegistrationService.catalogUsernameFromEmail(form.getEmail());
         String readerCard = normalizeReaderCard(form.getReaderCardNumber());
@@ -199,18 +185,25 @@ public class PeopleService {
 
     @Transactional
     public void delete(int id) {
-        if (!peopleRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Person not found: id=" + id);
-        }
+        Person person = peopleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Читатель не найден (id=" + id + ")."));
         if (bookRepository.existsByOwnerPersonId(id)) {
-            throw new ConflictException("Cannot delete a person who still has books on loan.");
+            throw new ConflictException("Нельзя удалить читателя, у которого есть несданные книги.");
+        }
+        String catalogLogin = RegistrationService.catalogUsernameFromEmail(person.getEmail());
+        if (!catalogLogin.isBlank()) {
+            libraryUserRepository.findByUsername(catalogLogin).ifPresent(user -> {
+                if (user.getRole() == UserRole.USER) {
+                    libraryUserRepository.delete(user);
+                }
+            });
         }
         peopleRepository.deleteById(id);
     }
 
     public List<Book> getBooksByPersonId(int id) {
         if (!peopleRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Person not found: id=" + id);
+            throw new ResourceNotFoundException("Читатель не найден (id=" + id + ").");
         }
         List<Book> books = bookRepository.findBorrowedBooksWithOwnerByPersonId(id);
         LocalDateTime now = LocalDateTime.now();

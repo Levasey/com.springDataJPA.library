@@ -30,6 +30,9 @@ class PeopleServiceTest {
     @Mock
     private BookRepository bookRepository;
 
+    @Mock
+    private RegistrationService registrationService;
+
     @InjectMocks
     private PeopleService peopleService;
 
@@ -70,15 +73,48 @@ class PeopleServiceTest {
     }
 
     @Test
-    void save_delegatesToRepository() {
+    void save_delegatesToRepository_andRegistersCatalogUser() {
+        when(peopleRepository.findByEmail("n@s.com")).thenReturn(Optional.empty());
+        when(peopleRepository.findByReaderCardNumber("CARD-N")).thenReturn(Optional.empty());
         PersonForm form = new PersonForm();
         form.setName("N");
         form.setSurname("S");
-        form.setEmail("n@s.com");
+        form.setEmail("  N@s.com ");
         form.setReaderCardNumber("CARD-N");
         form.setAddress("USA, Boston, 111111");
+        form.setPassword("abcdefgh");
         peopleService.save(form);
         verify(peopleRepository).save(any(Person.class));
+        verify(registrationService).registerCatalogUser("n@s.com", "abcdefgh");
+    }
+
+    @Test
+    void save_throwsWhenEmailTaken() {
+        when(peopleRepository.findByEmail("x@y.z")).thenReturn(Optional.of(new Person()));
+        PersonForm form = new PersonForm();
+        form.setName("N");
+        form.setSurname("S");
+        form.setEmail("x@y.z");
+        form.setReaderCardNumber("C1");
+        form.setPassword("abcdefgh");
+        assertThrows(ConflictException.class, () -> peopleService.save(form));
+        verify(peopleRepository, never()).save(any());
+        verifyNoInteractions(registrationService);
+    }
+
+    @Test
+    void save_throwsWhenReaderCardTaken() {
+        when(peopleRepository.findByEmail("a@b.c")).thenReturn(Optional.empty());
+        when(peopleRepository.findByReaderCardNumber("TAKEN")).thenReturn(Optional.of(new Person()));
+        PersonForm form = new PersonForm();
+        form.setName("N");
+        form.setSurname("S");
+        form.setEmail("a@b.c");
+        form.setReaderCardNumber("TAKEN");
+        form.setPassword("abcdefgh");
+        assertThrows(ConflictException.class, () -> peopleService.save(form));
+        verify(peopleRepository, never()).save(any());
+        verifyNoInteractions(registrationService);
     }
 
     @Test
@@ -86,6 +122,8 @@ class PeopleServiceTest {
         Person existing = new Person();
         existing.setPersonId(3);
         when(peopleRepository.findById(3)).thenReturn(Optional.of(existing));
+        when(peopleRepository.findByEmail("e@example.com")).thenReturn(Optional.of(existing));
+        when(peopleRepository.findByReaderCardNumber("CARD-UPD")).thenReturn(Optional.of(existing));
         PersonForm form = new PersonForm();
         form.setName("New");
         form.setSurname("Name");
@@ -98,7 +136,24 @@ class PeopleServiceTest {
         assertEquals("New", existing.getName());
         assertEquals("Name", existing.getSurname());
         assertEquals("CARD-UPD", existing.getReaderCardNumber());
+        assertEquals("e@example.com", existing.getEmail());
         verify(peopleRepository, never()).save(any());
+    }
+
+    @Test
+    void update_throwsWhenEmailBelongsToAnotherPerson() {
+        Person existing = new Person();
+        existing.setPersonId(3);
+        Person other = new Person();
+        other.setPersonId(7);
+        when(peopleRepository.findById(3)).thenReturn(Optional.of(existing));
+        when(peopleRepository.findByEmail("taken@x.com")).thenReturn(Optional.of(other));
+        PersonForm form = new PersonForm();
+        form.setName("N");
+        form.setSurname("S");
+        form.setEmail("taken@x.com");
+        form.setReaderCardNumber("R1");
+        assertThrows(ConflictException.class, () -> peopleService.update(3, form));
     }
 
     @Test

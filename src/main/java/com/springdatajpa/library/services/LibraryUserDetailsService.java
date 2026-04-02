@@ -19,8 +19,9 @@ public class LibraryUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        String key = RegistrationService.catalogUsernameFromEmail(username);
         LibraryUser u = libraryUserRepository
-                .findByUsername(username)
+                .findByUsername(key)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         return User.builder()
                 .username(u.getUsername())

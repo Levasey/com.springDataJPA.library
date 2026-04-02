@@ -33,7 +33,7 @@ public class Person {
 
     @NotBlank(message = "Email shouldn't be empty")
     @Email(message = "Email should be valid")
-    @Column(name = "email")
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
     @NotBlank(message = "Reader card number shouldn't be empty")

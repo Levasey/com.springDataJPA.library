@@ -34,6 +34,11 @@ public class PersonForm {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate dateOfBirth;
 
+    /** Только при создании читателя; в карточку Person не сохраняется. */
+    private String password;
+
+    private String confirmPassword;
+
     public static PersonForm from(Person person) {
         PersonForm form = new PersonForm();
         form.setName(person.getName());
@@ -114,5 +119,21 @@ public class PersonForm {
 
     public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getConfirmPassword() {
+        return confirmPassword;
+    }
+
+    public void setConfirmPassword(String confirmPassword) {
+        this.confirmPassword = confirmPassword;
     }
 }

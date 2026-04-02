@@ -29,10 +29,6 @@ public class RegistrationController {
             @Valid @ModelAttribute("registrationForm") RegistrationForm form,
             BindingResult bindingResult,
             RedirectAttributes redirectAttributes) {
-        if (!form.getPassword().equals(form.getConfirmPassword())) {
-            bindingResult.rejectValue("confirmPassword", "match", "Пароли не совпадают");
-        }
-
         String username = form.getUsername() == null ? "" : form.getUsername().trim();
         if (!username.isBlank() && registrationService.usernameExists(username)) {
             bindingResult.rejectValue("username", "duplicate", "Это имя пользователя уже занято");
@@ -42,8 +38,9 @@ public class RegistrationController {
             return "register";
         }
 
-        registrationService.register(username, form.getPassword());
+        String initialPassword = registrationService.register(username);
         redirectAttributes.addFlashAttribute("registeredUsername", username);
+        redirectAttributes.addFlashAttribute("registeredInitialPassword", initialPassword);
         return "redirect:/register";
     }
 }

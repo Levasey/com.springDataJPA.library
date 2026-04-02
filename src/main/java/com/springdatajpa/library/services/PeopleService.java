@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -24,10 +25,15 @@ public class PeopleService {
 
     private final PeopleRepository peopleRepository;
     private final BookRepository bookRepository;
+    private final RegistrationService registrationService;
 
-    public PeopleService(PeopleRepository peopleRepository, BookRepository bookRepository) {
+    public PeopleService(
+            PeopleRepository peopleRepository,
+            BookRepository bookRepository,
+            RegistrationService registrationService) {
         this.peopleRepository = peopleRepository;
         this.bookRepository = bookRepository;
+        this.registrationService = registrationService;
     }
 
     public List<Person> findAll() {
@@ -52,16 +58,60 @@ public class PeopleService {
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found: id=" + id));
     }
 
+    /**
+     * @param excludePersonId при редактировании — id текущего читателя; при создании — {@code null}
+     */
+    public boolean isEmailTakenBySomeoneElse(String normalizedEmail, Integer excludePersonId) {
+        return conflictsWithAnotherPerson(peopleRepository.findByEmail(normalizedEmail), excludePersonId);
+    }
+
+    /**
+     * @param excludePersonId при редактировании — id текущего читателя; при создании — {@code null}
+     */
+    public boolean isReaderCardTakenBySomeoneElse(String normalizedReaderCard, Integer excludePersonId) {
+        return conflictsWithAnotherPerson(
+                peopleRepository.findByReaderCardNumber(normalizedReaderCard), excludePersonId);
+    }
+
+    private static boolean conflictsWithAnotherPerson(Optional<Person> owner, Integer excludePersonId) {
+        return owner.map(p -> excludePersonId == null || p.getPersonId() != excludePersonId).orElse(false);
+    }
+
     @Transactional
     public void save(PersonForm form) {
-        peopleRepository.save(form.toNewPerson());
+        String email = RegistrationService.catalogUsernameFromEmail(form.getEmail());
+        String readerCard = normalizeReaderCard(form.getReaderCardNumber());
+        assertUniqueEmailAndReaderCard(email, readerCard, null);
+        Person person = form.toNewPerson();
+        person.setEmail(email);
+        person.setReaderCardNumber(readerCard);
+        peopleRepository.save(person);
+        registrationService.registerCatalogUser(email, form.getPassword());
     }
 
     @Transactional
     public void update(int id, PersonForm form) {
         Person person = peopleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Person not found: id=" + id));
+        String email = RegistrationService.catalogUsernameFromEmail(form.getEmail());
+        String readerCard = normalizeReaderCard(form.getReaderCardNumber());
+        assertUniqueEmailAndReaderCard(email, readerCard, id);
         form.applyTo(person);
+        person.setEmail(email);
+        person.setReaderCardNumber(readerCard);
+    }
+
+    private static String normalizeReaderCard(String readerCard) {
+        return readerCard == null ? "" : readerCard.trim();
+    }
+
+    private void assertUniqueEmailAndReaderCard(String email, String readerCard, Integer excludePersonId) {
+        if (isEmailTakenBySomeoneElse(email, excludePersonId)) {
+            throw new ConflictException("Этот email уже указан у другого читателя.");
+        }
+        if (isReaderCardTakenBySomeoneElse(readerCard, excludePersonId)) {
+            throw new ConflictException("Этот номер читательского билета уже используется.");
+        }
     }
 
     @Transactional

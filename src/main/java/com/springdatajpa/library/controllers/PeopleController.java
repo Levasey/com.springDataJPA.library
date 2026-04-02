@@ -2,6 +2,7 @@ package com.springdatajpa.library.controllers;
 
 import com.springdatajpa.library.dto.PersonForm;
 import com.springdatajpa.library.services.PeopleService;
+import com.springdatajpa.library.services.RegistrationService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,14 +10,21 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
+
 @Controller
 @RequestMapping("/people")
 public class PeopleController {
 
-    private final PeopleService peopleService;
+    private static final int CATALOG_PASSWORD_MIN = 4;
+    private static final int CATALOG_PASSWORD_MAX = 128;
 
-    public PeopleController(PeopleService peopleService) {
+    private final PeopleService peopleService;
+    private final RegistrationService registrationService;
+
+    public PeopleController(PeopleService peopleService, RegistrationService registrationService) {
         this.peopleService = peopleService;
+        this.registrationService = registrationService;
     }
 
     @GetMapping()
@@ -50,11 +58,54 @@ public class PeopleController {
 
     @PostMapping()
     public String create(@ModelAttribute("personForm") @Valid PersonForm personForm, BindingResult bindingResult) {
+        validateNewReaderCatalogPassword(personForm, bindingResult);
+        String catalogLogin = RegistrationService.catalogUsernameFromEmail(personForm.getEmail());
+        String normCard = normalizeReaderCard(personForm.getReaderCardNumber());
+        if (!bindingResult.hasErrors()) {
+            if (peopleService.isEmailTakenBySomeoneElse(catalogLogin, null)) {
+                bindingResult.rejectValue(
+                        "email", "duplicate.personEmail", "Этот email уже указан у другого читателя.");
+            }
+            if (!bindingResult.hasErrors() && peopleService.isReaderCardTakenBySomeoneElse(normCard, null)) {
+                bindingResult.rejectValue(
+                        "readerCardNumber",
+                        "duplicate.readerCard",
+                        "Этот номер читательского билета уже используется.");
+            }
+            if (!bindingResult.hasErrors() && !catalogLogin.isBlank()
+                    && registrationService.usernameExists(catalogLogin)) {
+                bindingResult.rejectValue(
+                        "email", "duplicate.catalog", "Этот email уже используется для входа в каталог.");
+            }
+        }
+
         if (bindingResult.hasErrors()) {
             return "people/new";
         }
         peopleService.save(personForm);
         return "redirect:/people";
+    }
+
+    private static String normalizeReaderCard(String readerCard) {
+        return readerCard == null ? "" : readerCard.trim();
+    }
+
+    private void validateNewReaderCatalogPassword(PersonForm form, BindingResult bindingResult) {
+        String p = form.getPassword() == null ? "" : form.getPassword();
+        String c = form.getConfirmPassword() == null ? "" : form.getConfirmPassword();
+        if (p.isBlank()) {
+            bindingResult.rejectValue("password", "required", "Укажите пароль для входа в каталог.");
+            return;
+        }
+        if (p.length() < CATALOG_PASSWORD_MIN || p.length() > CATALOG_PASSWORD_MAX) {
+            bindingResult.rejectValue(
+                    "password",
+                    "size",
+                    "Пароль: от " + CATALOG_PASSWORD_MIN + " до " + CATALOG_PASSWORD_MAX + " символов.");
+        }
+        if (!Objects.equals(p, c)) {
+            bindingResult.rejectValue("confirmPassword", "match", "Пароли не совпадают.");
+        }
     }
 
     @GetMapping("/{personId}/edit")
@@ -67,6 +118,22 @@ public class PeopleController {
     @PatchMapping("/{personId}")
     public String update(@ModelAttribute("personForm") @Valid PersonForm personForm, BindingResult bindingResult,
                          @PathVariable("personId") int id, Model model) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("personId", id);
+            return "people/edit";
+        }
+        String catalogLogin = RegistrationService.catalogUsernameFromEmail(personForm.getEmail());
+        String normCard = normalizeReaderCard(personForm.getReaderCardNumber());
+        if (peopleService.isEmailTakenBySomeoneElse(catalogLogin, id)) {
+            bindingResult.rejectValue(
+                    "email", "duplicate.personEmail", "Этот email уже указан у другого читателя.");
+        }
+        if (!bindingResult.hasErrors() && peopleService.isReaderCardTakenBySomeoneElse(normCard, id)) {
+            bindingResult.rejectValue(
+                    "readerCardNumber",
+                    "duplicate.readerCard",
+                    "Этот номер читательского билета уже используется.");
+        }
         if (bindingResult.hasErrors()) {
             model.addAttribute("personId", id);
             return "people/edit";

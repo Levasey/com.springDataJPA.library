@@ -42,3 +42,7 @@ library:
     welcome-reader:
       enabled: false
       from: ""
+    password-reset:
+      # Включите true и настройте spring.mail / library.app.public-base-url — письмо со ссылкой на /catalog/setup-password
+      enabled: false
+      from: ""

@@ -10,7 +10,7 @@
         <p th:if="${registeredInitialPassword}" style="margin:0; font-size:0.95rem">
             Временный пароль для входа: <code style="user-select:all" th:text="${registeredInitialPassword}">secret</code>
         </p>
-        <p th:if="${registeredInitialPassword}" class="muted" style="margin:0.5rem 0 0; font-size:0.85rem">Этот пароль больше не отображается. При утере потребуется новая учётная запись или доработка системы.</p>
+        <p th:if="${registeredInitialPassword}" class="muted" style="margin:0.5rem 0 0; font-size:0.85rem">Этот пароль больше не отображается. Читатель может восстановить доступ по email на странице входа («Забыли пароль?»), если настроена почта.</p>
     </div>
 
     <form class="form-stack panel" style="max-width:22rem" th:action="@{/register}" th:object="${registrationForm}" method="post">

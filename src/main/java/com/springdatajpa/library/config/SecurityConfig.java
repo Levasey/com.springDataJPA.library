@@ -30,7 +30,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/catalog/setup-password").permitAll()
-                        .requestMatchers("/", "/login", "/logout", "/error",
+                        .requestMatchers("/", "/login", "/logout", "/forgot-password", "/error",
                                 LibraryAccessDeniedHandler.FORBIDDEN_PAGE_PATH).permitAll()
                         .requestMatchers("/register").hasRole("LIBRARIAN")
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico")

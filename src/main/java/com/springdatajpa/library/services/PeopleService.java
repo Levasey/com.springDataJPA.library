@@ -9,6 +9,8 @@ import com.springdatajpa.library.repositories.BookRepository;
 import com.springdatajpa.library.repositories.PeopleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
@@ -26,14 +28,17 @@ public class PeopleService {
     private final PeopleRepository peopleRepository;
     private final BookRepository bookRepository;
     private final RegistrationService registrationService;
+    private final ReaderWelcomeMailService readerWelcomeMailService;
 
     public PeopleService(
             PeopleRepository peopleRepository,
             BookRepository bookRepository,
-            RegistrationService registrationService) {
+            RegistrationService registrationService,
+            ReaderWelcomeMailService readerWelcomeMailService) {
         this.peopleRepository = peopleRepository;
         this.bookRepository = bookRepository;
         this.registrationService = registrationService;
+        this.readerWelcomeMailService = readerWelcomeMailService;
     }
 
     public List<Person> findAll() {
@@ -86,7 +91,23 @@ public class PeopleService {
         person.setEmail(email);
         person.setReaderCardNumber(readerCard);
         peopleRepository.save(person);
-        registrationService.registerCatalogUser(email, form.getPassword());
+        String plainPassword = form.getPassword();
+        registrationService.registerCatalogUser(email, plainPassword);
+        scheduleAfterCommit(
+                () -> readerWelcomeMailService.sendWelcomeIfConfigured(email, email, plainPassword, readerCard));
+    }
+
+    private static void scheduleAfterCommit(Runnable task) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    task.run();
+                }
+            });
+        } else {
+            task.run();
+        }
     }
 
     @Transactional

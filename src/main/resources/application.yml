@@ -31,3 +31,10 @@ management:
 logging:
   level:
     org.hibernate.SQL: ${SQL_LOG_LEVEL:WARN}
+
+# Письмо при создании читателя (пароль + билет): задайте spring.mail.* и enabled: true.
+library:
+  mail:
+    welcome-reader:
+      enabled: false
+      from: ""

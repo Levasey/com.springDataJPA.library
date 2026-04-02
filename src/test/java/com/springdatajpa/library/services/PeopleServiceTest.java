@@ -33,6 +33,9 @@ class PeopleServiceTest {
     @Mock
     private RegistrationService registrationService;
 
+    @Mock
+    private ReaderWelcomeMailService readerWelcomeMailService;
+
     @InjectMocks
     private PeopleService peopleService;
 
@@ -86,6 +89,8 @@ class PeopleServiceTest {
         peopleService.save(form);
         verify(peopleRepository).save(any(Person.class));
         verify(registrationService).registerCatalogUser("n@s.com", "abcdefgh");
+        verify(readerWelcomeMailService)
+                .sendWelcomeIfConfigured("n@s.com", "n@s.com", "abcdefgh", "CARD-N");
     }
 
     @Test
@@ -100,6 +105,7 @@ class PeopleServiceTest {
         assertThrows(ConflictException.class, () -> peopleService.save(form));
         verify(peopleRepository, never()).save(any());
         verifyNoInteractions(registrationService);
+        verifyNoInteractions(readerWelcomeMailService);
     }
 
     @Test
@@ -115,6 +121,7 @@ class PeopleServiceTest {
         assertThrows(ConflictException.class, () -> peopleService.save(form));
         verify(peopleRepository, never()).save(any());
         verifyNoInteractions(registrationService);
+        verifyNoInteractions(readerWelcomeMailService);
     }
 
     @Test

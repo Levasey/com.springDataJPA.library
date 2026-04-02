@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 
 public class ForgotPasswordForm {
 
-    @NotBlank(message = "Укажите email.")
-    @Email(message = "Укажите корректный email.")
+    @NotBlank(message = "{validation.forgot.email.notblank}")
+    @Email(message = "{validation.forgot.email.invalid}")
     private String email;
 
     public String getEmail() {

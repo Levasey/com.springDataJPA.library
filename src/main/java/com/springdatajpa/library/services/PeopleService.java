@@ -163,7 +163,7 @@ public class PeopleService {
             return;
         }
         if (libraryUserRepository.existsByUsername(newLogin)) {
-            throw new ConflictException("Этот email уже используется для входа в каталог.");
+            throw new ConflictException("Этот email уже используется для входа в каталог.", "email");
         }
         readerAccount.setUsername(newLogin);
     }
@@ -174,10 +174,10 @@ public class PeopleService {
 
     private void assertUniqueEmailAndReaderCard(String email, String readerCard, Integer excludePersonId) {
         if (isEmailTakenBySomeoneElse(email, excludePersonId)) {
-            throw new ConflictException("Этот email уже указан у другого читателя.");
+            throw new ConflictException("Этот email уже указан у другого читателя.", "email");
         }
         if (isReaderCardTakenBySomeoneElse(readerCard, excludePersonId)) {
-            throw new ConflictException("Этот номер читательского билета уже используется.");
+            throw new ConflictException("Этот номер читательского билета уже используется.", "readerCardNumber");
         }
     }
 

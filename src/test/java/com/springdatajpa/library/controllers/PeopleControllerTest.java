@@ -1,10 +1,10 @@
 package com.springdatajpa.library.controllers;
 
 import com.springdatajpa.library.dto.PersonForm;
+import com.springdatajpa.library.exception.ConflictException;
 import com.springdatajpa.library.exception.GlobalExceptionHandler;
 import com.springdatajpa.library.models.Person;
 import com.springdatajpa.library.services.PeopleService;
-import com.springdatajpa.library.services.RegistrationService;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,11 +19,9 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -33,9 +31,6 @@ class PeopleControllerTest {
     @Mock
     private PeopleService peopleService;
 
-    @Mock
-    private RegistrationService registrationService;
-
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -43,7 +38,7 @@ class PeopleControllerTest {
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.setMessageInterpolator(new ParameterMessageInterpolator());
         validator.afterPropertiesSet();
-        mockMvc = MockMvcBuilders.standaloneSetup(new PeopleController(peopleService, registrationService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new PeopleController(peopleService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
                 .build();
@@ -86,7 +81,6 @@ class PeopleControllerTest {
 
     @Test
     void create_valid_redirects() throws Exception {
-        when(registrationService.usernameExists("j@example.com")).thenReturn(false);
         when(peopleService.save(any(PersonForm.class))).thenReturn(Optional.empty());
         mockMvc.perform(post("/people")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -101,7 +95,8 @@ class PeopleControllerTest {
 
     @Test
     void create_duplicatePersonEmail_returnsForm() throws Exception {
-        when(peopleService.isEmailTakenBySomeoneElse("j@example.com", null)).thenReturn(true);
+        when(peopleService.save(any(PersonForm.class)))
+                .thenThrow(new ConflictException("Этот email уже указан у другого читателя.", "email"));
         mockMvc.perform(post("/people")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name", "John")
@@ -111,13 +106,13 @@ class PeopleControllerTest {
                         .param("address", "USA, Boston, 123456"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("people/new"));
-        verifyNoInteractions(registrationService);
-        verify(peopleService, never()).save(any(PersonForm.class));
+        verify(peopleService).save(any(PersonForm.class));
     }
 
     @Test
     void create_duplicateReaderCard_returnsForm() throws Exception {
-        when(peopleService.isReaderCardTakenBySomeoneElse("J-1001", null)).thenReturn(true);
+        when(peopleService.save(any(PersonForm.class)))
+                .thenThrow(new ConflictException("Этот номер читательского билета уже используется.", "readerCardNumber"));
         mockMvc.perform(post("/people")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name", "John")
@@ -127,15 +122,13 @@ class PeopleControllerTest {
                         .param("address", "USA, Boston, 123456"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("people/new"));
-        verifyNoInteractions(registrationService);
-        verify(peopleService, never()).save(any(PersonForm.class));
+        verify(peopleService).save(any(PersonForm.class));
     }
 
     @Test
     void create_duplicateCatalogEmail_returnsForm() throws Exception {
-        when(peopleService.isEmailTakenBySomeoneElse("j@example.com", null)).thenReturn(false);
-        when(peopleService.isReaderCardTakenBySomeoneElse("J-1001", null)).thenReturn(false);
-        when(registrationService.usernameExists("j@example.com")).thenReturn(true);
+        when(peopleService.save(any(PersonForm.class)))
+                .thenThrow(new ConflictException("Учётная запись каталога с таким логином уже существует.", "email"));
         mockMvc.perform(post("/people")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name", "John")
@@ -145,7 +138,7 @@ class PeopleControllerTest {
                         .param("address", "USA, Boston, 123456"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("people/new"));
-        verify(peopleService, never()).save(any(PersonForm.class));
+        verify(peopleService).save(any(PersonForm.class));
     }
 
     @Test
@@ -176,9 +169,8 @@ class PeopleControllerTest {
 
     @Test
     void update_duplicateCatalogEmail_returnsForm() throws Exception {
-        when(peopleService.isEmailTakenBySomeoneElse("new@example.com", 2)).thenReturn(false);
-        when(peopleService.isReaderCardTakenBySomeoneElse("J-2002", 2)).thenReturn(false);
-        when(peopleService.isCatalogLoginTakenBySomeoneElse(2, "new@example.com")).thenReturn(true);
+        doThrow(new ConflictException("Этот email уже используется для входа в каталог.", "email"))
+                .when(peopleService).update(eq(2), any(PersonForm.class));
         mockMvc.perform(patch("/people/2")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name", "Jane")
@@ -189,12 +181,13 @@ class PeopleControllerTest {
                         .param("dateOfBirth", "1990-01-15"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("people/edit"));
-        verify(peopleService, never()).update(anyInt(), any(PersonForm.class));
+        verify(peopleService).update(eq(2), any(PersonForm.class));
     }
 
     @Test
     void update_duplicateReaderCard_returnsForm() throws Exception {
-        when(peopleService.isReaderCardTakenBySomeoneElse("J-2002", 2)).thenReturn(true);
+        doThrow(new ConflictException("Этот номер читательского билета уже используется.", "readerCardNumber"))
+                .when(peopleService).update(eq(2), any(PersonForm.class));
         mockMvc.perform(patch("/people/2")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("name", "Jane")
@@ -205,7 +198,7 @@ class PeopleControllerTest {
                         .param("dateOfBirth", "1990-01-15"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("people/edit"));
-        verify(peopleService, never()).update(anyInt(), any(PersonForm.class));
+        verify(peopleService).update(eq(2), any(PersonForm.class));
     }
 
     @Test

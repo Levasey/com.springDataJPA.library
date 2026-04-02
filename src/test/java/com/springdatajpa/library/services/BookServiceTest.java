@@ -204,21 +204,23 @@ class BookServiceTest {
     @Test
     void assign_throwsWhenPersonIdNotPositive() {
         assertThrows(BadRequestException.class, () -> bookService.assign(1, 0));
-        verify(peopleRepository, never()).findById(anyInt());
+        verify(peopleRepository, never()).existsById(anyInt());
     }
 
     @Test
     void assign_throwsWhenPersonMissing() {
-        when(peopleRepository.findById(10)).thenReturn(Optional.empty());
+        Book book = new Book("T", "A", 2000);
+        book.setOwner(null);
+        when(bookRepository.findById(8)).thenReturn(Optional.of(book));
+        when(peopleRepository.existsById(10)).thenReturn(false);
         assertThrows(ResourceNotFoundException.class, () -> bookService.assign(8, 10));
-        verify(bookRepository, never()).findById(anyInt());
     }
 
     @Test
     void assign_throwsWhenBookMissing() {
-        when(peopleRepository.findById(10)).thenReturn(Optional.of(new Person()));
         when(bookRepository.findById(8)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> bookService.assign(8, 10));
+        verify(peopleRepository, never()).existsById(anyInt());
     }
 
     @Test
@@ -227,9 +229,9 @@ class BookServiceTest {
         person.setPersonId(10);
         Book book = new Book("T", "A", 2000);
         book.setOwner(new Person());
-        when(peopleRepository.findById(10)).thenReturn(Optional.of(person));
         when(bookRepository.findById(8)).thenReturn(Optional.of(book));
         assertThrows(BadRequestException.class, () -> bookService.assign(8, 10));
+        verify(peopleRepository, never()).existsById(anyInt());
     }
 
     @Test
@@ -238,7 +240,8 @@ class BookServiceTest {
         person.setPersonId(10);
         Book book = new Book("T", "A", 2000);
         book.setOwner(null);
-        when(peopleRepository.findById(10)).thenReturn(Optional.of(person));
+        when(peopleRepository.existsById(10)).thenReturn(true);
+        when(peopleRepository.getReferenceById(10)).thenReturn(person);
         when(bookRepository.findById(8)).thenReturn(Optional.of(book));
 
         bookService.assign(8, 10);

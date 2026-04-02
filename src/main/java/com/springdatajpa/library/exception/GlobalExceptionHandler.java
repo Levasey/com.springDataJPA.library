@@ -91,11 +91,16 @@ public class GlobalExceptionHandler {
         return mv;
     }
 
+    /**
+     * Сообщение клиенту обобщено: произвольный {@code IllegalArgumentException} из зависимостей
+     * не должен раскрывать внутренние детали.
+     */
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ModelAndView handleIllegalArgument(IllegalArgumentException ex) {
+        log.debug("IllegalArgumentException (sanitized for client)", ex);
         ModelAndView mv = new ModelAndView("error/bad-request");
-        mv.addObject("message", ex.getMessage());
+        mv.addObject("message", "Некорректный запрос. Проверьте данные и попробуйте снова.");
         return mv;
     }
 

@@ -96,14 +96,15 @@ public class BookService {
         if (personId <= 0) {
             throw new BadRequestException("Выберите читателя для выдачи книги.");
         }
-        Person person = peopleRepository.findById(personId)
-                .orElseThrow(() -> new ResourceNotFoundException("Читатель не найден (id=" + personId + ")."));
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Книга не найдена (id=" + bookId + ")."));
         if (book.getOwner() != null) {
             throw new BadRequestException("Книга уже выдана. Сначала оформите возврат.");
         }
-        book.setOwner(person);
+        if (!peopleRepository.existsById(personId)) {
+            throw new ResourceNotFoundException("Читатель не найден (id=" + personId + ").");
+        }
+        book.setOwner(peopleRepository.getReferenceById(personId));
         book.setTakenAt(LocalDateTime.now());
     }
 

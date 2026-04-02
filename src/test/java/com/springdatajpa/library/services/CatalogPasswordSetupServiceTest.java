@@ -44,6 +44,12 @@ class CatalogPasswordSetupServiceTest {
     }
 
     @Test
+    void createToken_throwsWhenUsernameBlank() {
+        assertThrows(BadRequestException.class, () -> catalogPasswordSetupService.createTokenForUsername("  "));
+        verifyNoInteractions(tokenRepository);
+    }
+
+    @Test
     void createToken_deletesOldUnused_andStoresHash() throws Exception {
         String username = "u@x.y";
 

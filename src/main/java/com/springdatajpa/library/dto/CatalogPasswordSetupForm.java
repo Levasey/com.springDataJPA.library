@@ -5,14 +5,14 @@ import jakarta.validation.constraints.Size;
 
 public class CatalogPasswordSetupForm {
 
-    @NotBlank(message = "Откройте страницу по ссылке из письма.")
+    @NotBlank(message = "{validation.catalog.token.notblank}")
     private String token;
 
-    @NotBlank(message = "Укажите пароль.")
-    @Size(min = 10, max = 128, message = "Пароль: от 10 до 128 символов.")
+    @NotBlank(message = "{validation.catalog.password.notblank}")
+    @Size(min = 10, max = 128, message = "{validation.catalog.password.size}")
     private String password;
 
-    @NotBlank(message = "Повторите пароль.")
+    @NotBlank(message = "{validation.catalog.password.confirm.notblank}")
     private String confirmPassword;
 
     public String getToken() {

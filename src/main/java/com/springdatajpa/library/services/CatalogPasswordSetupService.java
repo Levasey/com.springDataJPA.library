@@ -44,7 +44,7 @@ public class CatalogPasswordSetupService {
     @Transactional
     public String createTokenForUsername(String catalogUsername) {
         if (catalogUsername == null || catalogUsername.isBlank()) {
-            throw new IllegalArgumentException("Логин каталога не задан.");
+            throw new BadRequestException("Логин каталога не задан.");
         }
         tokenRepository.deleteByUsernameAndUsedAtIsNull(catalogUsername);
         byte[] raw = new byte[32];

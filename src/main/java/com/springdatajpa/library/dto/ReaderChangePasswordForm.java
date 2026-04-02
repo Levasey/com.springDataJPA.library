@@ -5,14 +5,14 @@ import jakarta.validation.constraints.Size;
 
 public class ReaderChangePasswordForm {
 
-    @NotBlank(message = "Укажите текущий пароль.")
+    @NotBlank(message = "{validation.reader.password.current.notblank}")
     private String currentPassword;
 
-    @NotBlank(message = "Укажите новый пароль.")
-    @Size(min = 10, max = 128, message = "Пароль: от 10 до 128 символов.")
+    @NotBlank(message = "{validation.reader.password.new.notblank}")
+    @Size(min = 10, max = 128, message = "{validation.reader.password.new.size}")
     private String newPassword;
 
-    @NotBlank(message = "Повторите новый пароль.")
+    @NotBlank(message = "{validation.reader.password.confirm.notblank}")
     private String confirmPassword;
 
     public String getCurrentPassword() {

@@ -17,13 +17,13 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int bookId;
 
-    @NotBlank(message = "Title should not be empty")
-    @Size(min = 2, max = 100, message = "Title should be between 2 and 100 characters")
+    @NotBlank(message = "{validation.book.title.notblank}")
+    @Size(min = 2, max = 100, message = "{validation.book.title.size}")
     @Column(name = "book_name")
     private String title;
 
-    @NotBlank(message = "Author should not be empty")
-    @Size(min = 2, max = 100, message = "Author should be between 2 and 100 characters")
+    @NotBlank(message = "{validation.book.author.notblank}")
+    @Size(min = 2, max = 100, message = "{validation.book.author.size}")
     @Column(name = "author")
     private String author;
 
@@ -31,7 +31,7 @@ public class Book {
     @Column(name = "year_published")
     private int yearPublished;
 
-    @NotNull(message = "Genre is required")
+    @NotNull(message = "{validation.book.genre.notnull}")
     @Enumerated(EnumType.STRING)
     @Column(name = "genre", nullable = false, length = 32)
     private Genre genre = Genre.OTHER;

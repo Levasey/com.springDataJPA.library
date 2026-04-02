@@ -9,18 +9,18 @@ import jakarta.validation.constraints.Size;
 
 public class BookForm {
 
-    @NotBlank(message = "Title should not be empty")
-    @Size(min = 2, max = 100, message = "Title should be between 2 and 100 characters")
+    @NotBlank(message = "{validation.book.title.notblank}")
+    @Size(min = 2, max = 100, message = "{validation.book.title.size}")
     private String title;
 
-    @NotBlank(message = "Author should not be empty")
-    @Size(min = 2, max = 100, message = "Author should be between 2 and 100 characters")
+    @NotBlank(message = "{validation.book.author.notblank}")
+    @Size(min = 2, max = 100, message = "{validation.book.author.size}")
     private String author;
 
     @YearPublished
     private int yearPublished;
 
-    @NotNull(message = "Genre is required")
+    @NotNull(message = "{validation.book.genre.notnull}")
     private Genre genre = Genre.OTHER;
 
     public static BookForm from(Book book) {

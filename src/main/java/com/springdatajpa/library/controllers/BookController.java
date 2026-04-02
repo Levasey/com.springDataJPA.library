@@ -4,6 +4,7 @@ import com.springdatajpa.library.dto.BookForm;
 import com.springdatajpa.library.models.Book;
 import com.springdatajpa.library.models.Genre;
 import com.springdatajpa.library.models.Person;
+import com.springdatajpa.library.models.UserRole;
 import com.springdatajpa.library.services.BookService;
 import com.springdatajpa.library.services.PeopleService;
 import jakarta.validation.Valid;
@@ -117,7 +118,7 @@ public class BookController {
             return false;
         }
         for (GrantedAuthority a : authentication.getAuthorities()) {
-            if ("ROLE_LIBRARIAN".equals(a.getAuthority())) {
+            if (UserRole.LIBRARIAN.getSpringAuthority().equals(a.getAuthority())) {
                 return true;
             }
         }

@@ -10,23 +10,23 @@ import java.time.LocalDate;
 
 public class PersonForm {
 
-    @NotBlank(message = "Name shouldn't be empty")
-    @Size(min = 2, max = 30, message = "Name should be between 2 and 30 characters")
+    @NotBlank(message = "{validation.person.name.notblank}")
+    @Size(min = 2, max = 30, message = "{validation.person.name.size}")
     private String name;
 
-    @NotBlank(message = "Surname shouldn't be empty")
-    @Size(min = 2, max = 30, message = "Surname should be between 2 and 30 characters")
+    @NotBlank(message = "{validation.person.surname.notblank}")
+    @Size(min = 2, max = 30, message = "{validation.person.surname.size}")
     private String surname;
 
-    @Size(max = 30, message = "Patronymic should be at most 30 characters")
+    @Size(max = 30, message = "{validation.person.patronymic.size}")
     private String patronymic;
 
-    @NotBlank(message = "Email shouldn't be empty")
-    @Email(message = "Email should be valid")
+    @NotBlank(message = "{validation.person.email.notblank}")
+    @Email(message = "{validation.person.email.invalid}")
     private String email;
 
-    @NotBlank(message = "Reader card number shouldn't be empty")
-    @Size(max = 64, message = "Reader card number should be at most 64 characters")
+    @NotBlank(message = "{validation.person.readerCard.notblank}")
+    @Size(max = 64, message = "{validation.person.readerCard.size}")
     private String readerCardNumber;
 
     private String address;

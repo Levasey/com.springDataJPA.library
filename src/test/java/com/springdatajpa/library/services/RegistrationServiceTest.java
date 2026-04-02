@@ -1,5 +1,6 @@
 package com.springdatajpa.library.services;
 
+import com.springdatajpa.library.exception.BadRequestException;
 import com.springdatajpa.library.exception.ConflictException;
 import com.springdatajpa.library.models.LibraryUser;
 import com.springdatajpa.library.models.UserRole;
@@ -67,7 +68,7 @@ class RegistrationServiceTest {
 
     @Test
     void register_throwsWhenUsernameBlankAfterNormalization() {
-        assertThrows(IllegalArgumentException.class, () -> registrationService.register("   "));
+        assertThrows(BadRequestException.class, () -> registrationService.register("   "));
         verify(libraryUserRepository, never()).save(any());
     }
 

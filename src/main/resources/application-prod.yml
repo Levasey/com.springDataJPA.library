@@ -3,12 +3,16 @@ spring:
     activate:
       on-profile: prod
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
 logging:
   level:
     root: WARN
     com.springdatajpa.library: INFO
-
-management:
-  endpoint:
-    health:
-      show-details: never

@@ -5,8 +5,8 @@ import jakarta.validation.constraints.Size;
 
 public class RegistrationForm {
 
-    @NotBlank(message = "Укажите имя пользователя")
-    @Size(min = 3, max = 64, message = "От 3 до 64 символов")
+    @NotBlank(message = "{validation.registration.username.notblank}")
+    @Size(min = 3, max = 64, message = "{validation.registration.username.size}")
     private String username;
 
     public String getUsername() {

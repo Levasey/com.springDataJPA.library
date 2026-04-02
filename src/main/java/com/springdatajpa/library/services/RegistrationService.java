@@ -1,5 +1,6 @@
 package com.springdatajpa.library.services;
 
+import com.springdatajpa.library.exception.BadRequestException;
 import com.springdatajpa.library.exception.ConflictException;
 import com.springdatajpa.library.models.LibraryUser;
 import com.springdatajpa.library.models.UserRole;
@@ -54,10 +55,10 @@ public class RegistrationService {
     @Transactional
     public void registerCatalogUser(String username, String rawPassword) {
         if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException("Имя пользователя каталога не задано.");
+            throw new BadRequestException("Имя пользователя каталога не задано.");
         }
         if (libraryUserRepository.existsByUsername(username)) {
-            throw new ConflictException("Учётная запись каталога с таким логином уже существует.");
+            throw new ConflictException("Учётная запись каталога с таким логином уже существует.", "email");
         }
         LibraryUser user = new LibraryUser(username, passwordEncoder.encode(rawPassword), true);
         libraryUserRepository.save(user);
@@ -72,10 +73,10 @@ public class RegistrationService {
     public String register(String username) {
         String normalized = catalogUsernameFromEmail(username);
         if (normalized.isBlank()) {
-            throw new IllegalArgumentException("Имя пользователя не задано.");
+            throw new BadRequestException("Имя пользователя не задано.");
         }
         if (libraryUserRepository.existsByUsername(normalized)) {
-            throw new ConflictException("Учётная запись с таким логином уже существует.");
+            throw new ConflictException("Учётная запись с таким логином уже существует.", "username");
         }
         String rawPassword = generateInitialPassword();
         LibraryUser user =

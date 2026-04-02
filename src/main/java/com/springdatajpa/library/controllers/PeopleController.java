@@ -1,8 +1,8 @@
 package com.springdatajpa.library.controllers;
 
 import com.springdatajpa.library.dto.PersonForm;
+import com.springdatajpa.library.exception.ConflictException;
 import com.springdatajpa.library.services.PeopleService;
-import com.springdatajpa.library.services.RegistrationService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,11 +16,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class PeopleController {
 
     private final PeopleService peopleService;
-    private final RegistrationService registrationService;
 
-    public PeopleController(PeopleService peopleService, RegistrationService registrationService) {
+    public PeopleController(PeopleService peopleService) {
         this.peopleService = peopleService;
-        this.registrationService = registrationService;
     }
 
     @GetMapping()
@@ -57,37 +55,18 @@ public class PeopleController {
             @ModelAttribute("personForm") @Valid PersonForm personForm,
             BindingResult bindingResult,
             RedirectAttributes redirectAttributes) {
-        String catalogLogin = RegistrationService.catalogUsernameFromEmail(personForm.getEmail());
-        String normCard = normalizeReaderCard(personForm.getReaderCardNumber());
-        if (!bindingResult.hasErrors()) {
-            if (peopleService.isEmailTakenBySomeoneElse(catalogLogin, null)) {
-                bindingResult.rejectValue(
-                        "email", "duplicate.personEmail", "Этот email уже указан у другого читателя.");
-            }
-            if (!bindingResult.hasErrors() && peopleService.isReaderCardTakenBySomeoneElse(normCard, null)) {
-                bindingResult.rejectValue(
-                        "readerCardNumber",
-                        "duplicate.readerCard",
-                        "Этот номер читательского билета уже используется.");
-            }
-            if (!bindingResult.hasErrors() && !catalogLogin.isBlank()
-                    && registrationService.usernameExists(catalogLogin)) {
-                bindingResult.rejectValue(
-                        "email", "duplicate.catalog", "Этот email уже используется для входа в каталог.");
-            }
-        }
-
         if (bindingResult.hasErrors()) {
             return "people/new";
         }
-        peopleService
-                .save(personForm)
-                .ifPresent(link -> redirectAttributes.addFlashAttribute("readerCatalogSetupLink", link));
+        try {
+            peopleService
+                    .save(personForm)
+                    .ifPresent(link -> redirectAttributes.addFlashAttribute("readerCatalogSetupLink", link));
+        } catch (ConflictException ex) {
+            rejectConflict(ex, bindingResult);
+            return "people/new";
+        }
         return "redirect:/people";
-    }
-
-    private static String normalizeReaderCard(String readerCard) {
-        return readerCard == null ? "" : readerCard.trim();
     }
 
     @GetMapping("/{personId}/edit")
@@ -104,28 +83,13 @@ public class PeopleController {
             model.addAttribute("personId", id);
             return "people/edit";
         }
-        String catalogLogin = RegistrationService.catalogUsernameFromEmail(personForm.getEmail());
-        String normCard = normalizeReaderCard(personForm.getReaderCardNumber());
-        if (peopleService.isEmailTakenBySomeoneElse(catalogLogin, id)) {
-            bindingResult.rejectValue(
-                    "email", "duplicate.personEmail", "Этот email уже указан у другого читателя.");
-        }
-        if (!bindingResult.hasErrors() && peopleService.isReaderCardTakenBySomeoneElse(normCard, id)) {
-            bindingResult.rejectValue(
-                    "readerCardNumber",
-                    "duplicate.readerCard",
-                    "Этот номер читательского билета уже используется.");
-        }
-        if (!bindingResult.hasErrors() && !catalogLogin.isBlank()
-                && peopleService.isCatalogLoginTakenBySomeoneElse(id, catalogLogin)) {
-            bindingResult.rejectValue(
-                    "email", "duplicate.catalog", "Этот email уже используется для входа в каталог.");
-        }
-        if (bindingResult.hasErrors()) {
+        try {
+            peopleService.update(id, personForm);
+        } catch (ConflictException ex) {
+            rejectConflict(ex, bindingResult);
             model.addAttribute("personId", id);
             return "people/edit";
         }
-        peopleService.update(id, personForm);
         return "redirect:/people";
     }
 
@@ -133,5 +97,14 @@ public class PeopleController {
     public String delete(@PathVariable("personId") int id) {
         peopleService.delete(id);
         return "redirect:/people";
+    }
+
+    private static void rejectConflict(ConflictException ex, BindingResult bindingResult) {
+        String field = ex.getField();
+        if (field != null && !field.isBlank()) {
+            bindingResult.rejectValue(field, "conflict", ex.getMessage());
+        } else {
+            bindingResult.reject("conflict", ex.getMessage());
+        }
     }
 }

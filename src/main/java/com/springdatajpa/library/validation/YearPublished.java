@@ -17,7 +17,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({FIELD, PARAMETER, ANNOTATION_TYPE})
 @Constraint(validatedBy = YearPublishedValidator.class)
 public @interface YearPublished {
-    String message() default "Year must be between 1500 and the current year";
+    String message() default "{validation.book.year.yearPublished}";
 
     Class<?>[] groups() default {};
 

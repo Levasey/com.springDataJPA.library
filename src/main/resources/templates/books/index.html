@@ -23,6 +23,9 @@
                     <option value="issued" th:selected="${availabilityPreset == 'issued'}">только выданные</option>
                 </select>
             </label>
+            <label sec:authorize="hasRole('USER')" class="sort-toolbar__check">
+                <input type="checkbox" name="hide_read" value="true" th:checked="${hideRead}"/> без прочитанных
+            </label>
             <button type="submit" class="btn btn-primary sort-toolbar__submit">Применить</button>
             <a class="sort-toolbar__reset" th:href="@{/books}">Сбросить</a>
         </div>
@@ -39,10 +42,10 @@
         <span th:text="|Страница ${booksPage.number + 1} из ${booksPage.totalPages} · всего ${booksPage.totalElements}|">страница</span>
         <span>
             <a th:if="${booksPage.hasPrevious()}"
-               th:href="@{/books(page=${booksPage.number}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear}, sort_by_genre=${sortByGenre}, sort_by_title=${sortByTitle}, sort_by_author=${sortByAuthor}, availability_preset=${availabilityPreset})}">← Назад</a>
+               th:href="@{/books(page=${booksPage.number}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear}, sort_by_genre=${sortByGenre}, sort_by_title=${sortByTitle}, sort_by_author=${sortByAuthor}, availability_preset=${availabilityPreset}, hide_read=${hideRead})}">← Назад</a>
             <span th:if="${booksPage.hasPrevious() and booksPage.hasNext()}"> · </span>
             <a th:if="${booksPage.hasNext()}"
-               th:href="@{/books(page=${booksPage.number + 2}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear}, sort_by_genre=${sortByGenre}, sort_by_title=${sortByTitle}, sort_by_author=${sortByAuthor}, availability_preset=${availabilityPreset})}">Вперёд →</a>
+               th:href="@{/books(page=${booksPage.number + 2}, books_per_page=${booksPage.size}, sort_by_year=${sortByYear}, sort_by_genre=${sortByGenre}, sort_by_title=${sortByTitle}, sort_by_author=${sortByAuthor}, availability_preset=${availabilityPreset}, hide_read=${hideRead})}">Вперёд →</a>
         </span>
     </div>
     <div class="actions" sec:authorize="hasRole('LIBRARIAN')">

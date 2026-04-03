@@ -38,4 +38,56 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     Page<Book> findByOwnerIsNull(Pageable pageable);
 
     Page<Book> findByOwnerIsNotNull(Pageable pageable);
+
+    @Query("""
+            SELECT b FROM Book b
+            WHERE NOT EXISTS (
+                SELECT 1 FROM Person p JOIN p.readBooks rb
+                WHERE p.personId = :readerPersonId AND rb.bookId = b.bookId)
+            """)
+    Page<Book> findAllExcludingReadByReader(@Param("readerPersonId") int readerPersonId, Pageable pageable);
+
+    @Query("""
+            SELECT b FROM Book b
+            WHERE NOT EXISTS (
+                SELECT 1 FROM Person p JOIN p.readBooks rb
+                WHERE p.personId = :readerPersonId AND rb.bookId = b.bookId)
+            """)
+    List<Book> findAllExcludingReadByReaderSorted(@Param("readerPersonId") int readerPersonId, Sort sort);
+
+    @Query("""
+            SELECT b FROM Book b
+            WHERE b.owner IS NULL
+              AND NOT EXISTS (
+                  SELECT 1 FROM Person p JOIN p.readBooks rb
+                  WHERE p.personId = :readerPersonId AND rb.bookId = b.bookId)
+            """)
+    Page<Book> findByOwnerIsNullExcludingReadByReader(@Param("readerPersonId") int readerPersonId, Pageable pageable);
+
+    @Query("""
+            SELECT b FROM Book b
+            WHERE b.owner IS NULL
+              AND NOT EXISTS (
+                  SELECT 1 FROM Person p JOIN p.readBooks rb
+                  WHERE p.personId = :readerPersonId AND rb.bookId = b.bookId)
+            """)
+    List<Book> findByOwnerIsNullExcludingReadByReaderSorted(@Param("readerPersonId") int readerPersonId, Sort sort);
+
+    @Query("""
+            SELECT b FROM Book b
+            WHERE b.owner IS NOT NULL
+              AND NOT EXISTS (
+                  SELECT 1 FROM Person p JOIN p.readBooks rb
+                  WHERE p.personId = :readerPersonId AND rb.bookId = b.bookId)
+            """)
+    Page<Book> findByOwnerIsNotNullExcludingReadByReader(@Param("readerPersonId") int readerPersonId, Pageable pageable);
+
+    @Query("""
+            SELECT b FROM Book b
+            WHERE b.owner IS NOT NULL
+              AND NOT EXISTS (
+                  SELECT 1 FROM Person p JOIN p.readBooks rb
+                  WHERE p.personId = :readerPersonId AND rb.bookId = b.bookId)
+            """)
+    List<Book> findByOwnerIsNotNullExcludingReadByReaderSorted(@Param("readerPersonId") int readerPersonId, Sort sort);
 }

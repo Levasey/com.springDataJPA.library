@@ -21,7 +21,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Controller
 @Validated
@@ -44,7 +46,8 @@ public class BookController {
                         @RequestParam(value = "sort_by_author", required = false) boolean sortByAuthor,
                         @RequestParam(value = "availability_preset", required = false) String availabilityPresetParam,
                         @RequestParam(value = "sort_by_availability", required = false, defaultValue = "false") boolean sortByAvailabilityLegacy,
-                        @RequestParam(value = "availability_issued_first", required = false, defaultValue = "false") boolean availabilityIssuedFirstLegacy) {
+                        @RequestParam(value = "availability_issued_first", required = false, defaultValue = "false") boolean availabilityIssuedFirstLegacy,
+                        @RequestParam(value = "hide_read", required = false, defaultValue = "false") boolean hideRead) {
         boolean sortByAvailability;
         boolean availabilityIssuedFirst;
         if (StringUtils.hasText(availabilityPresetParam)) {
@@ -58,9 +61,12 @@ public class BookController {
             availabilityIssuedFirst = availabilityIssuedFirstLegacy;
         }
 
+        Optional<Person> catalogReader = currentCatalogReader();
+        Integer excludeReadForPerson = catalogReader.filter(r -> hideRead).map(Person::getPersonId).orElse(null);
+
         Page<Book> booksPage = bookService.findForIndexPage(
                 page, booksPerPage, sortByYear, sortByGenre, sortByTitle, sortByAuthor,
-                sortByAvailability, availabilityIssuedFirst);
+                sortByAvailability, availabilityIssuedFirst, excludeReadForPerson);
         model.addAttribute("booksPage", booksPage);
         model.addAttribute("sortByYear", sortByYear);
         model.addAttribute("sortByGenre", sortByGenre);
@@ -71,19 +77,30 @@ public class BookController {
         model.addAttribute("availabilityPreset", sortByAvailability
                 ? (availabilityIssuedFirst ? "issued" : "free")
                 : "all");
-        currentCatalogReader().ifPresent(p ->
+        model.addAttribute("hideRead", catalogReader.isPresent() && hideRead);
+        catalogReader.ifPresent(p ->
                 model.addAttribute("readBookIds", peopleService.getReadBookIdsForPerson(p.getPersonId())));
         return "books/index";
     }
 
     @GetMapping("/search")
-    public String search(@RequestParam(value = "q", required = false) String q, Model model) {
+    public String search(
+            @RequestParam(value = "q", required = false) String q,
+            @RequestParam(value = "hide_read", required = false, defaultValue = "false") boolean hideRead,
+            Model model) {
+        Optional<Person> catalogReader = currentCatalogReader();
         if (StringUtils.hasText(q)) {
             String trimmed = q.trim();
-            model.addAttribute("books", bookService.searchBooks(trimmed));
+            List<Book> books = bookService.searchBooks(trimmed);
+            if (catalogReader.isPresent() && hideRead) {
+                Set<Integer> readIds = peopleService.getReadBookIdsForPerson(catalogReader.get().getPersonId());
+                books = books.stream().filter(b -> !readIds.contains(b.getBookId())).toList();
+            }
+            model.addAttribute("books", books);
             model.addAttribute("q", trimmed.length() > 200 ? trimmed.substring(0, 200) : trimmed);
         }
-        currentCatalogReader(SecurityContextHolder.getContext().getAuthentication()).ifPresent(p ->
+        model.addAttribute("hideRead", catalogReader.isPresent() && hideRead);
+        catalogReader.ifPresent(p ->
                 model.addAttribute("readBookIds", peopleService.getReadBookIdsForPerson(p.getPersonId())));
         return "books/search";
     }

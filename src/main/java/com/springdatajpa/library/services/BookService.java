@@ -125,22 +125,35 @@ public class BookService {
     public Page<Book> findForIndexPage(Integer page, Integer booksPerPage,
                                        boolean sortByYear, boolean sortByGenre,
                                        boolean sortByTitle, boolean sortByAuthor,
-                                       boolean sortByAvailability, boolean availabilityIssuedFirst) {
+                                       boolean sortByAvailability, boolean availabilityIssuedFirst,
+                                       Integer excludeReadBooksForPersonId) {
         if (page == null && booksPerPage == null) {
             Sort secondary = secondaryIndexSort(sortByYear, sortByGenre, sortByTitle, sortByAuthor);
             List<Book> content;
+            Integer readerId = excludeReadBooksForPersonId;
             if (sortByAvailability) {
                 if (availabilityIssuedFirst) {
-                    content = bookRepository.findByOwnerIsNotNull(issuedListSort(secondary));
+                    content = readerId != null
+                            ? bookRepository.findByOwnerIsNotNullExcludingReadByReaderSorted(
+                                    readerId, issuedListSort(secondary))
+                            : bookRepository.findByOwnerIsNotNull(issuedListSort(secondary));
                 } else if (secondary.isUnsorted()) {
-                    content = bookRepository.findByOwnerIsNull(Sort.unsorted());
+                    content = readerId != null
+                            ? bookRepository.findByOwnerIsNullExcludingReadByReaderSorted(readerId, Sort.unsorted())
+                            : bookRepository.findByOwnerIsNull(Sort.unsorted());
                 } else {
-                    content = bookRepository.findByOwnerIsNull(secondary);
+                    content = readerId != null
+                            ? bookRepository.findByOwnerIsNullExcludingReadByReaderSorted(readerId, secondary)
+                            : bookRepository.findByOwnerIsNull(secondary);
                 }
             } else if (secondary.isUnsorted()) {
-                content = bookRepository.findAll();
+                content = readerId != null
+                        ? bookRepository.findAllExcludingReadByReaderSorted(readerId, Sort.unsorted())
+                        : bookRepository.findAll();
             } else {
-                content = bookRepository.findAll(secondary);
+                content = readerId != null
+                        ? bookRepository.findAllExcludingReadByReaderSorted(readerId, secondary)
+                        : bookRepository.findAll(secondary);
             }
             return new PageImpl<>(content);
         }
@@ -156,28 +169,41 @@ public class BookService {
             size = MAX_PAGE_SIZE;
         }
         return findWithPagination(pageOneBased - 1, size, sortByYear, sortByGenre,
-                sortByTitle, sortByAuthor, sortByAvailability, availabilityIssuedFirst);
+                sortByTitle, sortByAuthor, sortByAvailability, availabilityIssuedFirst, excludeReadBooksForPersonId);
     }
 
     public Page<Book> findWithPagination(Integer page, Integer booksPerPage,
                                          boolean sortByYear, boolean sortByGenre,
                                          boolean sortByTitle, boolean sortByAuthor,
-                                         boolean sortByAvailability, boolean availabilityIssuedFirst) {
+                                         boolean sortByAvailability, boolean availabilityIssuedFirst,
+                                         Integer excludeReadBooksForPersonId) {
         Sort secondary = secondaryIndexSort(sortByYear, sortByGenre, sortByTitle, sortByAuthor);
+        Integer readerId = excludeReadBooksForPersonId;
         if (sortByAvailability) {
             if (availabilityIssuedFirst) {
                 Sort sort = issuedListSort(secondary);
-                return bookRepository.findByOwnerIsNotNull(PageRequest.of(page, booksPerPage, sort));
+                return readerId != null
+                        ? bookRepository.findByOwnerIsNotNullExcludingReadByReader(
+                                readerId, PageRequest.of(page, booksPerPage, sort))
+                        : bookRepository.findByOwnerIsNotNull(PageRequest.of(page, booksPerPage, sort));
             }
             if (secondary.isUnsorted()) {
-                return bookRepository.findByOwnerIsNull(PageRequest.of(page, booksPerPage));
+                return readerId != null
+                        ? bookRepository.findByOwnerIsNullExcludingReadByReader(
+                                readerId, PageRequest.of(page, booksPerPage))
+                        : bookRepository.findByOwnerIsNull(PageRequest.of(page, booksPerPage));
             }
-            return bookRepository.findByOwnerIsNull(PageRequest.of(page, booksPerPage, secondary));
+            return readerId != null
+                    ? bookRepository.findByOwnerIsNullExcludingReadByReader(
+                            readerId, PageRequest.of(page, booksPerPage, secondary))
+                    : bookRepository.findByOwnerIsNull(PageRequest.of(page, booksPerPage, secondary));
         }
         Pageable pageable = secondary.isUnsorted()
                 ? PageRequest.of(page, booksPerPage)
                 : PageRequest.of(page, booksPerPage, secondary);
-        return bookRepository.findAll(pageable);
+        return readerId != null
+                ? bookRepository.findAllExcludingReadByReader(readerId, pageable)
+                : bookRepository.findAll(pageable);
     }
 
     /** Порядок полей год / жанр / название / автор (без фильтра по выдаче). */

@@ -276,7 +276,7 @@ class BookServiceTest {
     @Test
     void findForIndexPage_noParamsUsesFindAll() {
         when(bookRepository.findAll()).thenReturn(List.of());
-        Page<Book> page = bookService.findForIndexPage(null, null, false, false, false, false, false, false);
+        Page<Book> page = bookService.findForIndexPage(null, null, false, false, false, false, false, false, null);
         verify(bookRepository).findAll();
         assertTrue(page.getContent().isEmpty());
     }
@@ -284,7 +284,7 @@ class BookServiceTest {
     @Test
     void findForIndexPage_noParams_sortByGenre() {
         when(bookRepository.findAll(Sort.by("genre"))).thenReturn(List.of());
-        bookService.findForIndexPage(null, null, false, true, false, false, false, false);
+        bookService.findForIndexPage(null, null, false, true, false, false, false, false, null);
         verify(bookRepository).findAll(Sort.by("genre"));
     }
 
@@ -293,7 +293,7 @@ class BookServiceTest {
         Book b = new Book("T", "A", 2000);
         Page<Book> repoPage = new PageImpl<>(List.of(b));
         when(bookRepository.findAll(PageRequest.of(0, 10))).thenReturn(repoPage);
-        Page<Book> result = bookService.findForIndexPage(1, null, false, false, false, false, false, false);
+        Page<Book> result = bookService.findForIndexPage(1, null, false, false, false, false, false, false, null);
         assertEquals(List.of(b), result.getContent());
     }
 
@@ -302,7 +302,7 @@ class BookServiceTest {
         Book b = new Book("T", "A", 2000);
         Page<Book> repoPage = new PageImpl<>(List.of(b));
         when(bookRepository.findAll(PageRequest.of(0, 100))).thenReturn(repoPage);
-        Page<Book> result = bookService.findForIndexPage(1, 500, false, false, false, false, false, false);
+        Page<Book> result = bookService.findForIndexPage(1, 500, false, false, false, false, false, false, null);
         assertEquals(List.of(b), result.getContent());
     }
 
@@ -311,7 +311,7 @@ class BookServiceTest {
         Book b = new Book("T", "A", 2000);
         Page<Book> repoPage = new PageImpl<>(List.of(b));
         when(bookRepository.findAll(PageRequest.of(1, 5, Sort.by("yearPublished")))).thenReturn(repoPage);
-        Page<Book> result = bookService.findWithPagination(1, 5, true, false, false, false, false, false);
+        Page<Book> result = bookService.findWithPagination(1, 5, true, false, false, false, false, false, null);
         assertEquals(List.of(b), result.getContent());
     }
 
@@ -320,7 +320,7 @@ class BookServiceTest {
         Book b = new Book("T", "A", 2000);
         Page<Book> repoPage = new PageImpl<>(List.of(b));
         when(bookRepository.findAll(PageRequest.of(0, 10, Sort.by("genre")))).thenReturn(repoPage);
-        Page<Book> result = bookService.findWithPagination(0, 10, false, true, false, false, false, false);
+        Page<Book> result = bookService.findWithPagination(0, 10, false, true, false, false, false, false, null);
         assertEquals(List.of(b), result.getContent());
     }
 
@@ -330,7 +330,7 @@ class BookServiceTest {
         Page<Book> repoPage = new PageImpl<>(List.of(b));
         Sort sort = Sort.by("title").and(Sort.by("author"));
         when(bookRepository.findAll(PageRequest.of(0, 10, sort))).thenReturn(repoPage);
-        Page<Book> result = bookService.findWithPagination(0, 10, false, false, true, true, false, false);
+        Page<Book> result = bookService.findWithPagination(0, 10, false, false, true, true, false, false, null);
         assertEquals(List.of(b), result.getContent());
     }
 
@@ -339,7 +339,7 @@ class BookServiceTest {
         Book b = new Book("T", "A", 2000);
         Page<Book> repoPage = new PageImpl<>(List.of(b));
         when(bookRepository.findAll(PageRequest.of(0, 10))).thenReturn(repoPage);
-        Page<Book> result = bookService.findWithPagination(0, 10, false, false, false, false, false, false);
+        Page<Book> result = bookService.findWithPagination(0, 10, false, false, false, false, false, false, null);
         assertEquals(List.of(b), result.getContent());
     }
 
@@ -348,7 +348,7 @@ class BookServiceTest {
         Book b = new Book("T", "A", 2000);
         Page<Book> repoPage = new PageImpl<>(List.of(b));
         when(bookRepository.findByOwnerIsNull(PageRequest.of(0, 10))).thenReturn(repoPage);
-        Page<Book> result = bookService.findWithPagination(0, 10, false, false, false, false, true, false);
+        Page<Book> result = bookService.findWithPagination(0, 10, false, false, false, false, true, false, null);
         assertEquals(List.of(b), result.getContent());
         verify(bookRepository).findByOwnerIsNull(PageRequest.of(0, 10));
     }
@@ -359,7 +359,26 @@ class BookServiceTest {
         Page<Book> repoPage = new PageImpl<>(List.of(b));
         when(bookRepository.findByOwnerIsNotNull(PageRequest.of(0, 10, Sort.by("takenAt"))))
                 .thenReturn(repoPage);
-        Page<Book> result = bookService.findWithPagination(0, 10, false, false, false, false, true, true);
+        Page<Book> result = bookService.findWithPagination(0, 10, false, false, false, false, true, true, null);
         assertEquals(List.of(b), result.getContent());
+    }
+
+    @Test
+    void findWithPagination_excludesReadBooks_whenReaderIdGiven() {
+        Page<Book> repoPage = new PageImpl<>(List.of());
+        when(bookRepository.findAllExcludingReadByReader(eq(3), any(PageRequest.class))).thenReturn(repoPage);
+        Page<Book> result = bookService.findWithPagination(0, 10, false, false, false, false, false, false, 3);
+        assertSame(repoPage, result);
+        verify(bookRepository).findAllExcludingReadByReader(eq(3), any(PageRequest.class));
+        verify(bookRepository, never()).findAll(any(PageRequest.class));
+    }
+
+    @Test
+    void findForIndexPage_unpaged_excludesReadBooks_whenReaderIdGiven() {
+        Sort byTitle = Sort.by("title");
+        when(bookRepository.findAllExcludingReadByReaderSorted(4, byTitle)).thenReturn(List.of());
+        bookService.findForIndexPage(null, null, false, false, true, false, false, false, 4);
+        verify(bookRepository).findAllExcludingReadByReaderSorted(4, byTitle);
+        verify(bookRepository, never()).findAll(any(Sort.class));
     }
 }

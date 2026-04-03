@@ -9,6 +9,9 @@
             <label for="q">Запрос</label>
             <input type="text" id="q" name="q" th:value="${q}" autocomplete="off" placeholder="Название, автор…"/>
         </div>
+        <label sec:authorize="hasRole('USER')" class="sort-toolbar__check" style="display:block;margin:0.35rem 0 0">
+            <input type="checkbox" name="hide_read" value="true" th:checked="${hideRead}"/> без прочитанных
+        </label>
         <div class="actions" style="margin-top:0">
             <input class="btn btn-primary" type="submit" value="Искать"/>
         </div>

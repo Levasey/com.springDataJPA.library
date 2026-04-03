@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.never;
@@ -250,5 +251,29 @@ class BookControllerTest {
                         .param("personId", "9"))
                 .andExpect(redirectedUrl("/books/6"));
         verify(bookService).assign(6, 9);
+    }
+
+    @Test
+    void setReadStatus_markRead_delegatesToPeopleService() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                "reader@test", null, AuthorityUtils.createAuthorityList("ROLE_USER")));
+        Person reader = new Person();
+        reader.setPersonId(7);
+        when(peopleService.findByCatalogLogin("reader@test")).thenReturn(Optional.of(reader));
+        mockMvc.perform(patch("/books/8/read").param("read", "true"))
+                .andExpect(redirectedUrl("/books/8"));
+        verify(peopleService).setReaderBookReadStatus(7, 8, true);
+    }
+
+    @Test
+    void setReadStatus_unmark_delegatesToPeopleService() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                "reader@test", null, AuthorityUtils.createAuthorityList("ROLE_USER")));
+        Person reader = new Person();
+        reader.setPersonId(7);
+        when(peopleService.findByCatalogLogin("reader@test")).thenReturn(Optional.of(reader));
+        mockMvc.perform(patch("/books/8/read").param("read", "false"))
+                .andExpect(redirectedUrl("/books/8"));
+        verify(peopleService).setReaderBookReadStatus(7, 8, false);
     }
 }

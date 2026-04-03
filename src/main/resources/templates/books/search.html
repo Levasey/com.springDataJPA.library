@@ -31,6 +31,8 @@
             <p sec:authorize="!hasRole('LIBRARIAN')" th:if="${book.getOwner() != null}" class="status-busy"
                style="margin:0;font-size:0.92rem">Занята</p>
             <p th:if="${book.getOwner() == null}" class="status-free" style="margin:0;font-size:0.92rem">Свободна</p>
+            <p sec:authorize="hasRole('USER')" th:if="${readBookIds != null and readBookIds.contains(book.getBookId())}"
+               class="status-free" style="margin:0.35rem 0 0;font-size:0.92rem">У вас отмечена как прочитанная</p>
             <div class="actions" style="margin-top:0.5rem">
                 <a class="btn btn-secondary" th:href="@{/books/{bookId}(bookId=${book.getBookId()})}">Карточка</a>
                 <a sec:authorize="hasRole('LIBRARIAN')" class="btn btn-primary"

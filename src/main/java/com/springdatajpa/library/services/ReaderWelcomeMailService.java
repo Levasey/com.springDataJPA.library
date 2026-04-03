@@ -111,6 +111,7 @@ public class ReaderWelcomeMailService {
                     false);
 
             mailSender.send(message);
+            log.info("Приветственное письмо отправлено на {}", recipientEmail);
         } catch (Exception e) {
             log.error("Не удалось отправить приветственное письмо на {}", recipientEmail, e);
         }

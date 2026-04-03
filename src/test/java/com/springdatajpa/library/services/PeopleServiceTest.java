@@ -102,14 +102,15 @@ class PeopleServiceTest {
         when(peopleRepository.findByEmail("n@s.com")).thenReturn(Optional.empty());
         when(peopleRepository.findByReaderCardNumber("CARD-N")).thenReturn(Optional.empty());
         when(catalogPasswordSetupService.createTokenForUsername("n@s.com")).thenReturn("raw-token");
-        when(readerWelcomeMailService.willSendWelcomeEmail()).thenReturn(true);
+        when(readerWelcomeMailService.buildSetupLinkForHandoff("raw-token"))
+                .thenReturn("/catalog/setup-password?token=raw-token");
         PersonForm form = new PersonForm();
         form.setName("N");
         form.setSurname("S");
         form.setEmail("  N@s.com ");
         form.setReaderCardNumber("CARD-N");
         form.setAddress("USA, Boston, 111111");
-        assertTrue(peopleService.save(form).isEmpty());
+        assertEquals(Optional.of("/catalog/setup-password?token=raw-token"), peopleService.save(form));
         verify(peopleRepository).save(any(Person.class));
         verify(registrationService).registerCatalogUserWithInvitationPassword("n@s.com");
         verify(catalogPasswordSetupService).createTokenForUsername("n@s.com");
@@ -122,7 +123,6 @@ class PeopleServiceTest {
         when(peopleRepository.findByEmail("n@s.com")).thenReturn(Optional.empty());
         when(peopleRepository.findByReaderCardNumber("CARD-N")).thenReturn(Optional.empty());
         when(catalogPasswordSetupService.createTokenForUsername("n@s.com")).thenReturn("raw-token");
-        when(readerWelcomeMailService.willSendWelcomeEmail()).thenReturn(false);
         when(readerWelcomeMailService.buildSetupLinkForHandoff("raw-token")).thenReturn("/catalog/setup-password?token=raw-token");
         PersonForm form = new PersonForm();
         form.setName("N");

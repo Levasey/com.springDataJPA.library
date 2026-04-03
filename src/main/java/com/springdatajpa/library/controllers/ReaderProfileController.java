@@ -36,6 +36,7 @@ public class ReaderProfileController {
         Person person = resolveReaderOrNotFound(authentication);
         model.addAttribute("person", person);
         model.addAttribute("books", peopleService.getBooksByPersonId(person.getPersonId()));
+        model.addAttribute("readBooks", peopleService.getReadBooksByPersonId(person.getPersonId()));
         return "reader/profile";
     }
 

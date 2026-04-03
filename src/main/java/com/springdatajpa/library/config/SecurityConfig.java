@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/books/new", "/books/*/edit").hasRole("LIBRARIAN")
                         .requestMatchers(HttpMethod.GET, "/books", "/books/**").hasAnyRole("USER", "LIBRARIAN")
                         .requestMatchers(HttpMethod.POST, "/books").hasRole("LIBRARIAN")
+                        .requestMatchers(HttpMethod.PATCH, "/books/*/read").hasRole("USER")
                         .requestMatchers(HttpMethod.PATCH, "/books/**").hasRole("LIBRARIAN")
                         .requestMatchers(HttpMethod.DELETE, "/books/**").hasRole("LIBRARIAN")
                         .anyRequest().authenticated())

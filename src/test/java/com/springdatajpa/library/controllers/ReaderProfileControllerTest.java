@@ -60,6 +60,7 @@ class ReaderProfileControllerTest {
         p.setPersonId(3);
         when(peopleService.findByCatalogLogin("reader@test")).thenReturn(Optional.of(p));
         when(peopleService.getBooksByPersonId(3)).thenReturn(List.of());
+        when(peopleService.getReadBooksByPersonId(3)).thenReturn(List.of());
 
         ExtendedModelMap model = new ExtendedModelMap();
         String view = controller.profile(auth, model);
@@ -67,6 +68,7 @@ class ReaderProfileControllerTest {
         assertEquals("reader/profile", view);
         assertEquals(p, model.get("person"));
         assertEquals(List.of(), model.get("books"));
+        assertEquals(List.of(), model.get("readBooks"));
     }
 
     @Test

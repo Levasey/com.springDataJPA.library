@@ -1,6 +1,7 @@
 package com.springdatajpa.library.controllers;
 
 import com.springdatajpa.library.dto.BookForm;
+import com.springdatajpa.library.exception.ResourceNotFoundException;
 import com.springdatajpa.library.models.Book;
 import com.springdatajpa.library.models.Genre;
 import com.springdatajpa.library.models.Person;
@@ -19,6 +20,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @Controller
 @Validated
@@ -68,6 +71,8 @@ public class BookController {
         model.addAttribute("availabilityPreset", sortByAvailability
                 ? (availabilityIssuedFirst ? "issued" : "free")
                 : "all");
+        currentCatalogReader().ifPresent(p ->
+                model.addAttribute("readBookIds", peopleService.getReadBookIdsForPerson(p.getPersonId())));
         return "books/index";
     }
 
@@ -78,6 +83,8 @@ public class BookController {
             model.addAttribute("books", bookService.searchBooks(trimmed));
             model.addAttribute("q", trimmed.length() > 200 ? trimmed.substring(0, 200) : trimmed);
         }
+        currentCatalogReader(SecurityContextHolder.getContext().getAuthentication()).ifPresent(p ->
+                model.addAttribute("readBookIds", peopleService.getReadBookIdsForPerson(p.getPersonId())));
         return "books/search";
     }
 
@@ -109,6 +116,8 @@ public class BookController {
         } else if (isLibrarian()) {
             model.addAttribute("people", peopleService.findAll());
         }
+        currentCatalogReader(SecurityContextHolder.getContext().getAuthentication()).ifPresent(p ->
+                model.addAttribute("readerMarkedRead", peopleService.hasPersonReadBook(p.getPersonId(), id)));
         return "books/show";
     }
 
@@ -162,5 +171,45 @@ public class BookController {
     public String assign(@PathVariable("bookId") int id, @RequestParam("personId") @Min(1) int personId) {
         bookService.assign(id, personId);
         return "redirect:/books/" + id;
+    }
+
+    @PatchMapping("/{bookId}/read")
+    public String setReadStatus(
+            @PathVariable("bookId") int id,
+            @RequestParam(value = "read", defaultValue = "true") boolean read) {
+        Person reader = resolveCatalogReader(SecurityContextHolder.getContext().getAuthentication());
+        peopleService.setReaderBookReadStatus(reader.getPersonId(), id, read);
+        return "redirect:/books/" + id;
+    }
+
+    private Optional<Person> currentCatalogReader() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return currentCatalogReader(authentication);
+    }
+
+    private Optional<Person> currentCatalogReader(Authentication authentication) {
+        if (authentication == null || !hasRole(authentication, UserRole.USER)) {
+            return Optional.empty();
+        }
+        Optional<Person> found = peopleService.findByCatalogLogin(authentication.getName());
+        return found != null ? found : Optional.empty();
+    }
+
+    private Person resolveCatalogReader(Authentication authentication) {
+        return currentCatalogReader(authentication)
+                .orElseThrow(() -> new ResourceNotFoundException("Читатель не найден."));
+    }
+
+    private static boolean hasRole(Authentication authentication, UserRole role) {
+        if (authentication == null) {
+            return false;
+        }
+        String authority = role.getSpringAuthority();
+        for (GrantedAuthority a : authentication.getAuthorities()) {
+            if (authority.equals(a.getAuthority())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

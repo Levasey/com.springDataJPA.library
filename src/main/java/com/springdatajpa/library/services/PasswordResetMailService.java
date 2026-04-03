@@ -87,6 +87,7 @@ public class PasswordResetMailService {
                     false);
 
             mailSender.send(message);
+            log.info("Письмо восстановления пароля отправлено на {}", recipientEmail);
         } catch (Exception e) {
             log.error("Не удалось отправить письмо восстановления пароля на {}", recipientEmail, e);
         }

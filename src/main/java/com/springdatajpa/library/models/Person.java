@@ -6,7 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "person")
@@ -49,6 +51,12 @@ public class Person {
 
     @OneToMany(mappedBy = "owner")
     private List<Book> books;
+
+    @ManyToMany
+    @JoinTable(name = "person_read_book",
+            joinColumns = @JoinColumn(name = "person_id"),
+            inverseJoinColumns = @JoinColumn(name = "book_id"))
+    private Set<Book> readBooks = new HashSet<>();
 
     public Person() {
     }
@@ -144,6 +152,14 @@ public class Person {
 
     public void setBooks(List<Book> books) {
         this.books = books;
+    }
+
+    public Set<Book> getReadBooks() {
+        return readBooks;
+    }
+
+    public void setReadBooks(Set<Book> readBooks) {
+        this.readBooks = readBooks;
     }
 
     @Override

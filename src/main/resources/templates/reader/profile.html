@@ -46,6 +46,34 @@
         </div>
     </div>
 
+    <div th:if="${readBooks.isEmpty()}" class="panel">
+        <p class="muted" style="margin:0">Нет книг, отмеченных как прочитанные.</p>
+    </div>
+
+    <div th:if="${!readBooks.isEmpty()}" class="panel stack">
+        <h2 class="page-title" style="font-size:1.15rem;margin:0 0 0.5rem">Прочитанные книги</h2>
+        <div style="overflow-x:auto">
+            <table class="book-table">
+                <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Автор</th>
+                    <th>Год</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="rb : ${readBooks}">
+                    <td>
+                        <a th:href="@{/books/{id}(id=${rb.getBookId()})}" th:text="${rb.getTitle()}">книга</a>
+                    </td>
+                    <td th:text="${rb.getAuthor()}">автор</td>
+                    <td th:text="${rb.getYearPublished()}">год</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="actions" style="flex-wrap:wrap;margin-top:1.25rem">
         <a class="btn btn-primary" th:href="@{/me/password}">Сменить пароль</a>
         <form class="nav-logout" style="display:inline-flex" th:action="@{/logout}" method="post">

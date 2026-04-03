@@ -31,6 +31,8 @@
         <li th:each="book : ${booksPage.content}">
             <a th:href="@{/books/{bookId}(bookId=${book.getBookId()})}"
                th:text="${book.getTitle() + ', ' + book.getAuthor() + ', ' + book.getYearPublished() + ' · ' + book.getGenre().getDisplayName()}">книга</a>
+            <span sec:authorize="hasRole('USER')" th:if="${readBookIds != null and readBookIds.contains(book.getBookId())}"
+                  class="status-free" style="margin-left:0.35rem;font-size:0.88em">прочитана</span>
         </li>
     </ul>
     <div class="pagination" th:if="${booksPage.totalPages > 1}">

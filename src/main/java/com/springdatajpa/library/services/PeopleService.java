@@ -18,8 +18,11 @@ import org.springframework.util.StringUtils;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
@@ -118,8 +121,8 @@ public class PeopleService {
     }
 
     /**
-     * @return ссылку для установки пароля, если приветственное письмо не уйдёт (нет SMTP / выключено / нет public URL) —
-     *         её нужно передать читателю вручную
+     * @return ссылку для установки пароля — её нужно передать читателю вручную, если почта не настроена, не ушла
+     *         или не дочиталась (спам, неверный SMTP и т.д.). При работающем SMTP письмо уходит дополнительно.
      */
     @Transactional
     public Optional<String> save(PersonForm form) {
@@ -132,12 +135,10 @@ public class PeopleService {
         peopleRepository.save(person);
         registrationService.registerCatalogUserWithInvitationPassword(email);
         String rawToken = catalogPasswordSetupService.createTokenForUsername(email);
+        String handoffLink = readerWelcomeMailService.buildSetupLinkForHandoff(rawToken);
         TransactionCallbacks.runAfterCommit(
                 () -> readerWelcomeMailService.sendWelcomeIfConfigured(email, email, rawToken, readerCard));
-        if (!readerWelcomeMailService.willSendWelcomeEmail()) {
-            return Optional.of(readerWelcomeMailService.buildSetupLinkForHandoff(rawToken));
-        }
-        return Optional.empty();
+        return Optional.of(handoffLink);
     }
 
     @Transactional
@@ -213,5 +214,41 @@ public class PeopleService {
             }
         });
         return books;
+    }
+
+    /**
+     * Книги, отмеченные читателем как прочитанные (личный список, не связан с выдачей).
+     */
+    public List<Book> getReadBooksByPersonId(int personId) {
+        Person person = peopleRepository.findWithReadBooksByPersonId(personId)
+                .orElseThrow(() -> new ResourceNotFoundException("Читатель не найден (id=" + personId + ")."));
+        return person.getReadBooks().stream()
+                .sorted(Comparator.comparing(Book::getTitle, String.CASE_INSENSITIVE_ORDER)
+                        .thenComparingInt(Book::getBookId))
+                .toList();
+    }
+
+    public Set<Integer> getReadBookIdsForPerson(int personId) {
+        if (!peopleRepository.existsById(personId)) {
+            throw new ResourceNotFoundException("Читатель не найден (id=" + personId + ").");
+        }
+        return new HashSet<>(peopleRepository.findReadBookIdsByPersonId(personId));
+    }
+
+    public boolean hasPersonReadBook(int personId, int bookId) {
+        return peopleRepository.personHasReadBook(personId, bookId);
+    }
+
+    @Transactional
+    public void setReaderBookReadStatus(int personId, int bookId, boolean read) {
+        Person person = peopleRepository.findById(personId)
+                .orElseThrow(() -> new ResourceNotFoundException("Читатель не найден (id=" + personId + ")."));
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Книга не найдена (id=" + bookId + ")."));
+        if (read) {
+            person.getReadBooks().add(book);
+        } else {
+            person.getReadBooks().remove(book);
+        }
     }
 }

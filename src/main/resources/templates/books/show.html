@@ -9,6 +9,28 @@
         <p><span class="muted">Жанр:</span> <span th:text="${book.getGenre().getDisplayName()}">жанр</span></p>
         <p><span class="muted">Автор:</span> <span th:text="${book.getAuthor()}">автор</span></p>
 
+        <div sec:authorize="hasRole('USER')" class="panel" style="margin-top:0.75rem;padding:0.85rem 1rem">
+            <p th:if="${readerMarkedRead}" class="status-free" style="margin:0 0 0.65rem">У вас отмечено как прочитанная.</p>
+            <p th:if="${readerMarkedRead == null or !readerMarkedRead}" class="muted" style="margin:0 0 0.65rem">
+                Отметьте, если уже читали эту книгу — список хранится в вашей карточке.</p>
+            <div class="actions" style="margin:0;flex-wrap:wrap;gap:0.5rem">
+                <form th:if="${readerMarkedRead == null or !readerMarkedRead}" class="actions" style="margin:0"
+                      th:method="post" th:action="@{/books/{bookId}/read(bookId=${book.getBookId()})}">
+                    <input type="hidden" name="_method" value="patch"/>
+                    <input type="hidden" name="read" value="true"/>
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input class="btn btn-primary" type="submit" value="Прочитал(а)"/>
+                </form>
+                <form th:if="${readerMarkedRead}" class="actions" style="margin:0"
+                      th:method="post" th:action="@{/books/{bookId}/read(bookId=${book.getBookId()})}">
+                    <input type="hidden" name="_method" value="patch"/>
+                    <input type="hidden" name="read" value="false"/>
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input class="btn btn-secondary" type="submit" value="Убрать из прочитанных"/>
+                </form>
+            </div>
+        </div>
+
         <div th:if="${owner}">
             <p sec:authorize="hasRole('LIBRARIAN')"><span class="muted">Сейчас у:</span>
                 <span th:text="${owner.getName() + ' ' + owner.getSurname() + ' (билет ' + owner.getReaderCardNumber() + ')'}">читатель</span></p>
